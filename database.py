@@ -13,14 +13,19 @@ class Database:
     
     def connect(self):
         try:
-            # Configuración de la base de datos externa
-            self.connection = psycopg2.connect(
-                host=os.getenv('DB_HOST'),
-                database=os.getenv('DB_NAME'),
-                user=os.getenv('DB_USER'),
-                password=os.getenv('DB_PASSWORD'),
-                port=os.getenv('DB_PORT', '5432')
-            )
+            # Usar DATABASE_URL de los secretos de Replit
+            database_url = os.environ.get('DATABASE_URL')
+            if database_url:
+                self.connection = psycopg2.connect(database_url)
+            else:
+                # Fallback a variables individuales
+                self.connection = psycopg2.connect(
+                    host=os.environ.get('DB_HOST'),
+                    database=os.environ.get('DB_NAME'),
+                    user=os.environ.get('DB_USER'),
+                    password=os.environ.get('DB_PASSWORD'),
+                    port=os.environ.get('DB_PORT', '5432')
+                )
             self.cursor = self.connection.cursor(cursor_factory=RealDictCursor)
             return True
         except Exception as e:
