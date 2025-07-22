@@ -1,0 +1,257 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iniciar Sesión / Registro</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .auth-container {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      width: 400px;
+      max-width: 90vw;
+    }
+    
+    .tabs {
+      display: flex;
+      background: #f8f9fa;
+    }
+    
+    .tab {
+      flex: 1;
+      padding: 1rem;
+      text-align: center;
+      cursor: pointer;
+      background: #f8f9fa;
+      border: none;
+      font-size: 1rem;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+    
+    .tab.active {
+      background: white;
+      color: #667eea;
+      border-bottom: 2px solid #667eea;
+    }
+    
+    .form-container {
+      padding: 2rem;
+    }
+    
+    .form {
+      display: none;
+    }
+    
+    .form.active {
+      display: block;
+    }
+    
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: #333;
+    }
+    
+    input {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 1rem;
+      transition: border-color 0.3s ease;
+    }
+    
+    input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    
+    .btn {
+      width: 100%;
+      padding: 0.75rem;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+    
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+    
+    .error {
+      color: #e74c3c;
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+    }
+    
+    .success {
+      color: #27ae60;
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-container">
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('login')">Iniciar Sesión</button>
+      <button class="tab" onclick="switchTab('register')">Registro</button>
+    </div>
+    
+    <div class="form-container">
+      <!-- Formulario de Login -->
+      <form id="login-form" class="form active" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label for="login-email">Correo electrónico:</label>
+          <input type="email" id="login-email" name="email" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="login-password">Contraseña:</label>
+          <input type="password" id="login-password" name="password" required>
+        </div>
+        
+        <button type="submit" class="btn">Iniciar Sesión</button>
+        <div id="login-message"></div>
+      </form>
+      
+      <!-- Formulario de Registro -->
+      <form id="register-form" class="form" onsubmit="handleRegister(event)">
+        <div class="form-group">
+          <label for="register-nombre">Nombre:</label>
+          <input type="text" id="register-nombre" name="nombre" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="register-apellido">Apellido:</label>
+          <input type="text" id="register-apellido" name="apellido" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="register-telefono">Número de teléfono:</label>
+          <input type="tel" id="register-telefono" name="telefono" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="register-email">Correo electrónico:</label>
+          <input type="email" id="register-email" name="email" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="register-password">Contraseña:</label>
+          <input type="password" id="register-password" name="password" required minlength="6">
+        </div>
+        
+        <button type="submit" class="btn">Registrarse</button>
+        <div id="register-message"></div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function switchTab(tab) {
+      // Cambiar pestañas activas
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.form').forEach(f => f.classList.remove('active'));
+      
+      if (tab === 'login') {
+        document.querySelector('.tab:first-child').classList.add('active');
+        document.getElementById('login-form').classList.add('active');
+      } else {
+        document.querySelector('.tab:last-child').classList.add('active');
+        document.getElementById('register-form').classList.add('active');
+      }
+    }
+    
+    async function handleLogin(event) {
+      event.preventDefault();
+      const formData = new FormData(event.target);
+      
+      try {
+        const response = await fetch('/login', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            email: formData.get('email'),
+            password: formData.get('password')
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          window.location.href = '/dashboard';
+        } else {
+          document.getElementById('login-message').innerHTML = 
+            '<div class="error">' + data.error + '</div>';
+        }
+      } catch (error) {
+        document.getElementById('login-message').innerHTML = 
+          '<div class="error">Error de conexión</div>';
+      }
+    }
+    
+    async function handleRegister(event) {
+      event.preventDefault();
+      const formData = new FormData(event.target);
+      
+      try {
+        const response = await fetch('/register', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            nombre: formData.get('nombre'),
+            apellido: formData.get('apellido'),
+            telefono: formData.get('telefono'),
+            email: formData.get('email'),
+            password: formData.get('password')
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          document.getElementById('register-message').innerHTML = 
+            '<div class="success">Registro exitoso. Puedes iniciar sesión ahora.</div>';
+          switchTab('login');
+        } else {
+          document.getElementById('register-message').innerHTML = 
+            '<div class="error">' + data.error + '</div>';
+        }
+      } catch (error) {
+        document.getElementById('register-message').innerHTML = 
+          '<div class="error">Error de conexión</div>';
+      }
+    }
+  </script>
+</body>
+</html>

@@ -35,7 +35,8 @@
         <div id="user-box" class="user-box">
           <p><strong>Nombre:</strong> {{ session.get('nombre', '---') }}</p>
           <p><strong>Apellido:</strong> {{ session.get('apellido', '---') }}</p>
-          <p><strong>Correo:</strong> {{ session.get('usuario', '---') }}</p>
+          <p><strong>Teléfono:</strong> {{ session.get('telefono', '---') }}</p>
+          <p><strong>Correo:</strong> {{ session.get('email', '---') }}</p>
           <a href="/logout" class="logout-btn">Cerrar sesión</a>
         </div>
       </div>

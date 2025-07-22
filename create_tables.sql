@@ -5,7 +5,9 @@ CREATE TABLE IF NOT EXISTS users (
     user_id VARCHAR(50) UNIQUE NOT NULL,
     nombre VARCHAR(100),
     apellido VARCHAR(100),
-    email VARCHAR(100),
+    telefono VARCHAR(20),
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
     balance DECIMAL(10,2) DEFAULT 0.00,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -22,8 +24,8 @@ CREATE TABLE IF NOT EXISTS transactions (
 );
 
 -- Insertar usuario de ejemplo
-INSERT INTO users (user_id, nombre, apellido, email, balance) 
-VALUES ('USR001', 'Juan', 'Pérez', 'juan@example.com', 150.00)
+INSERT INTO users (user_id, nombre, apellido, telefono, email, password, balance) 
+VALUES ('USR001', 'Juan', 'Pérez', '123456789', 'juan@example.com', 'scrypt:32768:8:1$salt$hash', 150.00)
 ON CONFLICT (user_id) DO NOTHING;
 
 -- Insertar algunas transacciones de ejemplo

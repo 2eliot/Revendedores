@@ -73,3 +73,23 @@ class Database:
     def update_user_balance(self, user_id, new_balance):
         query = "UPDATE users SET balance = %s WHERE user_id = %s"
         return self.execute_query(query, (new_balance, user_id))
+    
+    def create_user(self, nombre, apellido, telefono, email, password_hash):
+        import uuid
+        user_id = f"USR{str(uuid.uuid4())[:8].upper()}"
+        query = """
+        INSERT INTO users (user_id, nombre, apellido, telefono, email, password, balance)
+        VALUES (%s, %s, %s, %s, %s, %s, 0.00)
+        RETURNING user_id, nombre, apellido, email
+        """
+        return self.execute_query(query, (user_id, nombre, apellido, telefono, email, password_hash))
+    
+    def get_user_by_email(self, email):
+        query = "SELECT * FROM users WHERE email = %s"
+        result = self.execute_query(query, (email,))
+        return result[0] if result else None
+    
+    def get_user_by_id(self, user_id):
+        query = "SELECT * FROM users WHERE user_id = %s"
+        result = self.execute_query(query, (user_id,))
+        return result[0] if result else None
