@@ -123,6 +123,21 @@ body {
   background: #444;
 }
 
+.user-box .admin-btn {
+  display: inline-block;
+  margin: 0.25rem 0.5rem 0.25rem 0;
+  padding: 0.4rem 0.6rem;
+  background: #007bff;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.user-box .admin-btn:hover {
+  background: #0056b3;
+}
+
 /* ==== PANEL SALDO ==== */
 .user-panel {
   background-color: #f8f9fa;
@@ -184,4 +199,256 @@ body {
   background-color: #333;
   color: #fff;
   border-color: #333;
+}
+
+/* ==== PANEL DE ADMINISTRADOR ==== */
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 2rem;
+}
+
+.admin-header h1 {
+  color: #fff;
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.admin-nav {
+  display: flex;
+  gap: 1rem;
+}
+
+.nav-link {
+  color: #fff;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.nav-link:hover {
+  background-color: rgba(255,255,255,0.1);
+}
+
+.admin-panel {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.admin-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.stat-card h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  opacity: 0.9;
+}
+
+.stat-card span {
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.users-section {
+  background: #fff;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.users-section h2 {
+  margin: 0 0 1rem 0;
+  color: #333;
+  display: inline-block;
+}
+
+.btn-refresh {
+  float: right;
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.btn-refresh:hover {
+  background: #218838;
+}
+
+.users-table-container {
+  overflow-x: auto;
+  margin-top: 1rem;
+}
+
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.users-table th,
+.users-table td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.users-table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  color: #495057;
+}
+
+.users-table tr:hover {
+  background-color: #f8f9fa;
+}
+
+.status {
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.status.active {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.status.inactive {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.actions {
+  white-space: nowrap;
+}
+
+.btn-action {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  margin: 0 0.1rem;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.btn-credit:hover {
+  background-color: #fff3cd;
+}
+
+.btn-toggle:hover {
+  background-color: #d1ecf1;
+}
+
+.btn-delete:hover {
+  background-color: #f8d7da;
+}
+
+.no-users {
+  text-align: center;
+  color: #6c757d;
+  font-style: italic;
+}
+
+/* ==== MODALES ==== */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+  background-color: #fff;
+  margin: 10% auto;
+  padding: 2rem;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  position: relative;
+}
+
+.close {
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #999;
+}
+
+.close:hover {
+  color: #333;
+}
+
+.modal h3 {
+  margin-top: 0;
+  color: #333;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  justify-content: flex-end;
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.btn-success {
+  background-color: #28a745;
+  color: white;
+}
+
+.btn-success:hover {
+  background-color: #218838;
+}
+
+.btn-danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: #c82333;
+}
+
+.btn-cancel {
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn-cancel:hover {
+  background-color: #5a6268;
 }

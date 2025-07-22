@@ -37,6 +37,9 @@
           <p><strong>Apellido:</strong> {{ session.get('apellido', '---') }}</p>
           <p><strong>Teléfono:</strong> {{ session.get('telefono', '---') }}</p>
           <p><strong>Correo:</strong> {{ session.get('email', '---') }}</p>
+          {% if session.get('user_id') == 'ADMIN001' %}
+          <a href="/admin" class="admin-btn">🛡️ Panel Admin</a>
+          {% endif %}
           <a href="/logout" class="logout-btn">Cerrar sesión</a>
         </div>
       </div>

@@ -101,3 +101,38 @@ class Database:
         WHERE user_id = 'ADMIN001'
         """
         return self.execute_query(query, (email, password_hash))
+    
+    def get_all_users(self):
+        query = """
+        SELECT user_id, nombre, apellido, telefono, email, balance, 
+               created_at, COALESCE(is_active, true) as is_active
+        FROM users 
+        WHERE user_id != 'ADMIN001'
+        ORDER BY created_at DESC
+        """
+        return self.execute_query(query)
+    
+    def toggle_user_status(self, user_id, action):
+        is_active = True if action == 'activate' else False
+        query = "UPDATE users SET is_active = %s WHERE user_id = %s"
+        result = self.execute_query(query, (is_active, user_id))
+        return result is not None
+    
+    def delete_user(self, user_id):
+        # Primero eliminar transacciones del usuario
+        delete_transactions = "DELETE FROM transactions WHERE user_id = %s"
+        self.execute_query(delete_transactions, (user_id,))
+        
+        # Luego eliminar el usuario
+        delete_user_query = "DELETE FROM users WHERE user_id = %s"
+        result = self.execute_query(delete_user_query, (user_id,))
+        return result is not None
+    
+    def add_credit_to_user(self, user_id, amount):
+        query = """
+        UPDATE users 
+        SET balance = balance + %s 
+        WHERE user_id = %s
+        """
+        result = self.execute_query(query, (amount, user_id))
+        return result is not None

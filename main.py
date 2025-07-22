@@ -200,6 +200,113 @@ def logout():
     session.clear()
     return redirect(url_for('auth'))
 
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session or session['user_id'] != 'ADMIN001':
+            return redirect(url_for('auth'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+@app.route('/admin')
+@admin_required
+def admin_panel():
+    db = Database()
+    if not db.connect():
+        return "Error de conexión a la base de datos", 500
+
+    try:
+        users = db.get_all_users()
+        return render_template('admin.html', users=users)
+    finally:
+        db.disconnect()
+
+@app.route('/admin/users')
+@admin_required
+def admin_users():
+    db = Database()
+    if not db.connect():
+        return jsonify({"error": "Error de conexión a la base de datos"}), 500
+
+    try:
+        users = db.get_all_users()
+        return jsonify({"users": [dict(user) for user in users] if users else []})
+    finally:
+        db.disconnect()
+
+@app.route('/admin/user/<user_id>/toggle', methods=['POST'])
+@admin_required
+def toggle_user_status():
+    db = Database()
+    if not db.connect():
+        return jsonify({"error": "Error de conexión a la base de datos"}), 500
+
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        action = data.get('action')  # 'activate' o 'deactivate'
+        
+        result = db.toggle_user_status(user_id, action)
+        
+        if result:
+            return jsonify({"success": True, "message": f"Usuario {action}d exitosamente"})
+        else:
+            return jsonify({"error": "No se pudo actualizar el estado del usuario"}), 400
+
+    finally:
+        db.disconnect()
+
+@app.route('/admin/user/<user_id>/delete', methods=['POST'])
+@admin_required
+def delete_user():
+    db = Database()
+    if not db.connect():
+        return jsonify({"error": "Error de conexión a la base de datos"}), 500
+
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        
+        result = db.delete_user(user_id)
+        
+        if result:
+            return jsonify({"success": True, "message": "Usuario eliminado exitosamente"})
+        else:
+            return jsonify({"error": "No se pudo eliminar el usuario"}), 400
+
+    finally:
+        db.disconnect()
+
+@app.route('/admin/user/<user_id>/add-credit', methods=['POST'])
+@admin_required
+def add_credit():
+    db = Database()
+    if not db.connect():
+        return jsonify({"error": "Error de conexión a la base de datos"}), 500
+
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        amount = float(data.get('amount', 0))
+        
+        if amount <= 0:
+            return jsonify({"error": "El monto debe ser mayor a 0"}), 400
+        
+        result = db.add_credit_to_user(user_id, amount)
+        
+        if result:
+            new_balance = db.get_user_balance(user_id)
+            return jsonify({
+                "success": True, 
+                "message": f"Crédito agregado exitosamente",
+                "new_balance": str(new_balance)
+            })
+        else:
+            return jsonify({"error": "No se pudo agregar el crédito"}), 400
+
+    finally:
+        db.disconnect()
+
 # Las credenciales del admin se leen directamente de las variables de entorno
 admin_user = os.getenv('ADMIN_USER', 'admin')
 admin_password = os.getenv('ADMIN_PASSWORD', 'password')
