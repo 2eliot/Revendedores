@@ -75,8 +75,18 @@ class Database:
         return self.execute_query(query, (new_balance, user_id))
     
     def create_user(self, nombre, apellido, telefono, email, password_hash):
-        import uuid
-        user_id = f"USR{str(uuid.uuid4())[:8].upper()}"
+        # Obtener el próximo número secuencial
+        count_query = "SELECT COUNT(*) FROM users WHERE user_id LIKE 'USR%'"
+        count_result = self.execute_query(count_query)
+        
+        if count_result:
+            user_count = count_result[0]['count'] + 1
+        else:
+            user_count = 1
+            
+        # Crear ID secuencial con formato USR001, USR002, etc.
+        user_id = f"USR{user_count:03d}"
+        
         query = """
         INSERT INTO users (user_id, nombre, apellido, telefono, email, password, balance)
         VALUES (%s, %s, %s, %s, %s, %s, 0.00)
