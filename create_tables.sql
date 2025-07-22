@@ -1,4 +1,3 @@
-
 -- Crear tabla de usuarios
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
@@ -34,3 +33,8 @@ VALUES
     ('USR001', '8452', 'TX-000001', 50.00),
     ('USR001', '7891', 'TX-000002', 25.00),
     ('USR001', '1234', 'TX-000003', 75.00);
+
+-- Insertar usuario administrador simple
+INSERT INTO users (user_id, nombre, apellido, telefono, email, password, balance) 
+VALUES ('ADMIN001', 'Admin', 'Usuario', '000000000', 'admin', 'temp_password', 0.00)
+ON CONFLICT (user_id) DO NOTHING;

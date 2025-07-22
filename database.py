@@ -93,3 +93,11 @@ class Database:
         query = "SELECT * FROM users WHERE user_id = %s"
         result = self.execute_query(query, (user_id,))
         return result[0] if result else None
+    
+    def update_admin_credentials(self, email, password_hash):
+        query = """
+        UPDATE users 
+        SET email = %s, password = %s 
+        WHERE user_id = 'ADMIN001'
+        """
+        return self.execute_query(query, (email, password_hash))

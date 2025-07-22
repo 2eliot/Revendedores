@@ -1,4 +1,4 @@
-
+# Simplificando el sistema de administrador para usar solo 'admin' y 'password'.
 from flask import Flask, render_template, session, redirect, url_for, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from database import Database
@@ -36,17 +36,17 @@ def login():
     db = Database()
     if not db.connect():
         return jsonify({"error": "Error de conexión a la base de datos"}), 500
-    
+
     try:
         data = request.get_json()
         email = data.get('email')
         password = data.get('password')
-        
+
         if not email or not password:
             return jsonify({"error": "Email y contraseña son requeridos"}), 400
-        
+
         user = db.get_user_by_email(email)
-        
+
         if user and check_password_hash(user['password'], password):
             session['user_id'] = user['user_id']
             session['nombre'] = user['nombre']
@@ -56,11 +56,11 @@ def login():
             return jsonify({"success": True})
         else:
             return jsonify({"error": "Email o contraseña incorrectos"}), 401
-    
+
     except Exception as e:
         print(f"Error en login: {e}")
         return jsonify({"error": "Error interno del servidor"}), 500
-    
+
     finally:
         db.disconnect()
 
@@ -69,7 +69,7 @@ def register():
     db = Database()
     if not db.connect():
         return jsonify({"error": "Error de conexión a la base de datos"}), 500
-    
+
     try:
         data = request.get_json()
         nombre = data.get('nombre')
@@ -77,33 +77,33 @@ def register():
         telefono = data.get('telefono')
         email = data.get('email')
         password = data.get('password')
-        
+
         if not all([nombre, apellido, telefono, email, password]):
             return jsonify({"error": "Todos los campos son requeridos"}), 400
-        
+
         if len(password) < 6:
             return jsonify({"error": "La contraseña debe tener al menos 6 caracteres"}), 400
-        
+
         # Verificar si el email ya existe
         existing_user = db.get_user_by_email(email)
         if existing_user:
             return jsonify({"error": "El email ya está registrado"}), 400
-        
+
         # Crear hash de la contraseña
         password_hash = generate_password_hash(password)
-        
+
         # Crear usuario
         result = db.create_user(nombre, apellido, telefono, email, password_hash)
-        
+
         if result:
             return jsonify({"success": True, "message": "Usuario registrado exitosamente"})
         else:
             return jsonify({"error": "No se pudo crear el usuario"}), 500
-    
+
     except Exception as e:
         print(f"Error en registro: {e}")
         return jsonify({"error": "Error interno del servidor"}), 500
-    
+
     finally:
         db.disconnect()
 
@@ -113,25 +113,25 @@ def dashboard():
     db = Database()
     if not db.connect():
         return "Error de conexión a la base de datos", 500
-    
+
     try:
         user_id = session['user_id']
-        
+
         # Obtener saldo real de la base de datos
         balance = db.get_user_balance(user_id)
         if balance is None:
             balance = "0.00"
-        
+
         # Obtener transacciones del usuario
         transactions = db.get_user_transactions(user_id, limit=10)
         if transactions is None:
             transactions = []
-        
+
         return render_template('dashboard.html', 
                              user_id=user_id, 
                              balance=balance,
                              transactions=transactions)
-    
+
     finally:
         db.disconnect()
 
@@ -141,21 +141,21 @@ def add_transaction():
     db = Database()
     if not db.connect():
         return jsonify({"error": "Error de conexión a la base de datos"}), 500
-    
+
     try:
         data = request.get_json()
         user_id = session['user_id']
         pin = data.get('pin')
         transaction_id = data.get('transaction_id')
         amount = data.get('amount')
-        
+
         result = db.insert_transaction(user_id, pin, transaction_id, amount)
-        
+
         if result:
             return jsonify({"success": True, "transaction": dict(result[0])})
         else:
             return jsonify({"error": "No se pudo insertar la transacción"}), 400
-    
+
     finally:
         db.disconnect()
 
@@ -165,19 +165,19 @@ def update_balance():
     db = Database()
     if not db.connect():
         return jsonify({"error": "Error de conexión a la base de datos"}), 500
-    
+
     try:
         data = request.get_json()
         user_id = session['user_id']
         new_balance = data.get('balance')
-        
+
         result = db.update_user_balance(user_id, new_balance)
-        
+
         if result is not None:
             return jsonify({"success": True})
         else:
             return jsonify({"error": "No se pudo actualizar el saldo"}), 400
-    
+
     finally:
         db.disconnect()
 
@@ -185,6 +185,25 @@ def update_balance():
 def logout():
     session.clear()
     return redirect(url_for('auth'))
+
+def setup_admin_user():
+    """Configura el usuario administrador con credenciales simples"""
+    admin_password = os.getenv('ADMIN_PASSWORD', 'password')  # password por defecto
+
+    db = Database()
+    if db.connect():
+        try:
+            # Actualizar credenciales del admin
+            password_hash = generate_password_hash(admin_password)
+            db.update_admin_credentials('admin', password_hash)
+            print(f"Admin configurado con usuario: admin, password: {admin_password}")
+        except Exception as e:
+            print(f"Error configurando admin: {e}")
+        finally:
+            db.disconnect()
+
+# Configurar admin al iniciar la aplicación
+setup_admin_user()
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
