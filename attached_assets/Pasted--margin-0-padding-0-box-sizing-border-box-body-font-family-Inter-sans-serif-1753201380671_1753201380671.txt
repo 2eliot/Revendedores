@@ -1,0 +1,186 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #f8f9fa;
+  color: #333;
+}
+
+/* ==== HEADER ==== */
+.header {
+  background-color: #222;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  z-index: 10;
+}
+.hamburger {
+  position: relative;
+  cursor: pointer;
+}
+.hamburger .icon {
+  width: 32px;
+  height: 32px;
+  stroke: #fff;
+  fill: none;
+}
+
+/* Menú de juegos desplegable */
+.menu-juegos {
+  position: absolute;
+  top: 40px;
+  left: 0;
+  background: #fff;
+  color: #333;
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  display: none;
+  width: 180px;
+}
+.menu-juegos.visible {
+  display: block;
+}
+.menu-juegos .menu-title {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+.menu-juegos ul {
+  list-style: none;
+  padding: 0;
+}
+.menu-juegos li {
+  margin-bottom: 0.5rem;
+}
+.menu-juegos a {
+  color: #333;
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+.menu-juegos a:hover {
+  color: #000;
+  font-weight: bold;
+}
+
+/* Íconos del header a la derecha */
+.icon-container {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  position: relative;
+}
+.icon {
+  width: 32px;
+  height: 32px;
+  fill: #ffffff;
+  transition: transform 0.2s ease;
+}
+.icon:hover {
+  transform: scale(1.2);
+  cursor: pointer;
+}
+
+/* Caja de usuario */
+.user-icon {
+  position: relative;
+}
+.user-box {
+  position: absolute;
+  top: 40px;
+  right: 0;
+  background-color: #fff;
+  color: #333;
+  padding: 0.8rem 1rem;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  display: none;
+  width: max-content;
+  min-width: 220px;
+}
+.user-box.visible {
+  display: block;
+}
+.user-box p {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+}
+.user-box .logout-btn {
+  display: inline-block;
+  margin-top: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  background: #333;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 4px;
+}
+.user-box .logout-btn:hover {
+  background: #444;
+}
+
+/* ==== PANEL SALDO ==== */
+.user-panel {
+  background-color: #f8f9fa;
+  text-align: center;
+  font-size: 1.1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid #ddd;
+}
+
+/* ==== HISTORIAL ==== */
+.transactions {
+  padding: 2rem;
+  text-align: center;
+}
+.transaction-title {
+  background: linear-gradient(90deg, #333, #000);
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
+  display: inline-block;
+  margin-bottom: 1rem;
+  font-size: 1.4rem;
+  box-shadow: 0 0 4px rgba(0,0,0,0.3);
+}
+.transaction-list {
+  list-style: none;
+  padding: 0;
+}
+.transaction-list li {
+  background-color: #fff;
+  border: 1px solid #ccc;
+  margin: 0.5rem auto;
+  max-width: 400px;
+  padding: 0.75rem;
+  border-radius: 5px;
+  text-align: left;
+}
+.transaction-list li div {
+  margin-bottom: 0.25rem;
+}
+.pagination {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+.page {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #aaa;
+  background-color: #fff;
+  border-radius: 4px;
+  text-decoration: none;
+  color: #333;
+}
+.page:hover {
+  background-color: #eee;
+}
+.page.active {
+  background-color: #333;
+  color: #fff;
+  border-color: #333;
+}
