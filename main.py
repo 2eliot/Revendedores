@@ -33,10 +33,6 @@ def auth():
 
 @app.route('/login', methods=['POST'])
 def login():
-    db = Database()
-    if not db.connect():
-        return jsonify({"error": "Error de conexión a la base de datos"}), 500
-
     try:
         data = request.get_json()
         email = data.get('email')
@@ -45,24 +41,42 @@ def login():
         if not email or not password:
             return jsonify({"error": "Email y contraseña son requeridos"}), 400
 
-        user = db.get_user_by_email(email)
+        # Verificar credenciales del admin desde secretos
+        admin_user = os.getenv('ADMIN_USER', 'admin')
+        admin_password = os.getenv('ADMIN_PASSWORD', 'password')
 
-        if user and check_password_hash(user['password'], password):
-            session['user_id'] = user['user_id']
-            session['nombre'] = user['nombre']
-            session['apellido'] = user['apellido']
-            session['email'] = user['email']
-            session['telefono'] = user['telefono']
+        if email == admin_user and password == admin_password:
+            session['user_id'] = 'ADMIN001'
+            session['nombre'] = 'Admin'
+            session['apellido'] = 'Usuario'
+            session['email'] = admin_user
+            session['telefono'] = '000000000'
             return jsonify({"success": True})
-        else:
-            return jsonify({"error": "Email o contraseña incorrectos"}), 401
+        
+        # Si no es admin, verificar en base de datos
+        db = Database()
+        if not db.connect():
+            return jsonify({"error": "Error de conexión a la base de datos"}), 500
+
+        try:
+            user = db.get_user_by_email(email)
+
+            if user and check_password_hash(user['password'], password):
+                session['user_id'] = user['user_id']
+                session['nombre'] = user['nombre']
+                session['apellido'] = user['apellido']
+                session['email'] = user['email']
+                session['telefono'] = user['telefono']
+                return jsonify({"success": True})
+            else:
+                return jsonify({"error": "Email o contraseña incorrectos"}), 401
+
+        finally:
+            db.disconnect()
 
     except Exception as e:
         print(f"Error en login: {e}")
         return jsonify({"error": "Error interno del servidor"}), 500
-
-    finally:
-        db.disconnect()
 
 @app.route('/register', methods=['POST'])
 def register():
@@ -186,24 +200,10 @@ def logout():
     session.clear()
     return redirect(url_for('auth'))
 
-def setup_admin_user():
-    """Configura el usuario administrador con credenciales simples"""
-    admin_password = os.getenv('ADMIN_PASSWORD', 'password')  # password por defecto
-
-    db = Database()
-    if db.connect():
-        try:
-            # Actualizar credenciales del admin
-            password_hash = generate_password_hash(admin_password)
-            db.update_admin_credentials('admin', password_hash)
-            print(f"Admin configurado con usuario: admin, password: {admin_password}")
-        except Exception as e:
-            print(f"Error configurando admin: {e}")
-        finally:
-            db.disconnect()
-
-# Configurar admin al iniciar la aplicación
-setup_admin_user()
+# Las credenciales del admin se leen directamente de las variables de entorno
+admin_user = os.getenv('ADMIN_USER', 'admin')
+admin_password = os.getenv('ADMIN_PASSWORD', 'password')
+print(f"Admin configurado - Usuario: {admin_user}, Password: {admin_password}")
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
