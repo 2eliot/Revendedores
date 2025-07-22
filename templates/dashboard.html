@@ -1,0 +1,77 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel Principal</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Header con hamburguesa y menú de juegos -->
+  <header class="header">
+    <div class="hamburger" onclick="toggleMenu()">
+      <svg class="icon" viewBox="0 0 24 24">
+        <path d="M3 6h18M3 12h18M3 18h18" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <div id="menu-juegos" class="menu-juegos">
+        <p class="menu-title">🎮 Juegos</p>
+        <ul>
+          <li><a href="#">Free Fire Latam</a></li>
+          <li><a href="#">Free Fire</a></li>
+          <li><a href="#">Block Striker</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="icon-container">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M3 10L12 2l9 8v10a1 1 0 01-1 1h-6v-6H10v6H4a1 1 0 01-1-1V10z"/></svg>
+      <svg class="icon" viewBox="0 0 24 24"><path d="M2 7a2 2 0 012-2h16a2 2 0 012 2v3H4v8a2 2 0 01-2-2V7zm20 5h-5a1 1 0 000 2h5v-2z"/></svg>
+
+      <div class="user-icon" onclick="toggleUserBox()">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M12 12a5 5 0 100-10 5 5 0 000 10zm0 2c-4.418 0-8 2.239-8 5v1h16v-1c0-2.761-3.582-5-8-5z"/></svg>
+        <div id="user-box" class="user-box">
+          <p><strong>Nombre:</strong> {{ session.get('nombre', '---') }}</p>
+          <p><strong>Apellido:</strong> {{ session.get('apellido', '---') }}</p>
+          <p><strong>Correo:</strong> {{ session.get('usuario', '---') }}</p>
+          <a href="/logout" class="logout-btn">Cerrar sesión</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Panel del usuario -->
+  <section class="user-panel">
+    <p>Mi ID {{ user_id }} &nbsp; | &nbsp; Saldo ${{ balance }}</p>
+  </section>
+
+  <!-- Historial -->
+  <section class="transactions">
+    <h2 class="transaction-title">Historial de transacciones</h2>
+    <ul class="transaction-list">
+      <li>
+        <div><strong>Nro de control:</strong> 001</div>
+        <div><strong>PIN:</strong> 8452</div>
+        <div><strong>Transacción:</strong> TX-000001</div>
+      </li>
+    </ul>
+    <div class="pagination">
+      <a href="#" class="page">«</a>
+      <a href="#" class="page active">1</a>
+      <a href="#" class="page">2</a>
+      <a href="#" class="page">»</a>
+    </div>
+  </section>
+
+  <script>
+    function toggleUserBox() {
+      document.getElementById("user-box").classList.toggle("visible");
+    }
+    function toggleMenu() {
+      document.getElementById("menu-juegos").classList.toggle("visible");
+    }
+  </script>
+</body>
+</html>
