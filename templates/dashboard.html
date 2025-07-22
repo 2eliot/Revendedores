@@ -51,11 +51,23 @@
   <section class="transactions">
     <h2 class="transaction-title">Historial de transacciones</h2>
     <ul class="transaction-list">
-      <li>
-        <div><strong>Nro de control:</strong> 001</div>
-        <div><strong>PIN:</strong> 8452</div>
-        <div><strong>Transacción:</strong> TX-000001</div>
-      </li>
+      {% if transactions %}
+        {% for transaction in transactions %}
+        <li>
+          <div><strong>ID:</strong> {{ transaction.id }}</div>
+          <div><strong>PIN:</strong> {{ transaction.pin }}</div>
+          <div><strong>Transacción:</strong> {{ transaction.transaction_id }}</div>
+          {% if transaction.amount %}
+          <div><strong>Monto:</strong> ${{ transaction.amount }}</div>
+          {% endif %}
+          <div><strong>Fecha:</strong> {{ transaction.created_at.strftime('%d/%m/%Y %H:%M') }}</div>
+        </li>
+        {% endfor %}
+      {% else %}
+        <li>
+          <div>No hay transacciones disponibles</div>
+        </li>
+      {% endif %}
     </ul>
     <div class="pagination">
       <a href="#" class="page">«</a>
