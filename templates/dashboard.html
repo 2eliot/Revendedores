@@ -28,7 +28,6 @@
 
     <div class="icon-container">
       <svg class="icon" viewBox="0 0 24 24"><path d="M3 10L12 2l9 8v10a1 1 0 01-1 1h-6v-6H10v6H4a1 1 0 01-1-1V10z"/></svg>
-      
       <div class="wallet-icon" onclick="toggleWalletBox()">
         <svg class="icon" viewBox="0 0 24 24"><path d="M2 7a2 2 0 012-2h16a2 2 0 012 2v3H4v8a2 2 0 01-2-2V7zm20 5h-5a1 1 0 000 2h5v-2z"/></svg>
         <div id="wallet-box" class="wallet-box">
@@ -42,9 +41,9 @@
             <p><strong>Última actualización:</strong> Ahora</p>
           </div>
         </div>
-      </div>
+      </div></div>
 
-      <div class="user-icon" onclick="toggleUserBox()"></div>
+      <div class="user-icon" onclick="toggleUserBox()">
         <svg class="icon" viewBox="0 0 24 24"><path d="M12 12a5 5 0 100-10 5 5 0 000 10zm0 2c-4.418 0-8 2.239-8 5v1h16v-1c0-2.761-3.582-5-8-5z"/></svg>
         <div id="user-box" class="user-box">
           <p><strong>Nombre:</strong> {{ session.get('nombre', '---') }}</p>
