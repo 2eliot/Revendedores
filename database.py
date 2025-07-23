@@ -74,7 +74,9 @@ class Database:
             SELECT t.*, u.nombre, u.apellido 
             FROM transactions t
             LEFT JOIN users u ON t.user_id = u.user_id
-            ORDER BY t.created_at DESC 
+            ORDER BY 
+                CASE WHEN t.status = 'procesando' THEN 0 ELSE 1 END,
+                t.created_at DESC 
             LIMIT %s OFFSET %s
             """
             return self.execute_query(query, (limit, offset))
@@ -83,7 +85,9 @@ class Database:
             query = """
             SELECT * FROM transactions 
             WHERE user_id = %s 
-            ORDER BY created_at DESC 
+            ORDER BY 
+                CASE WHEN status = 'procesando' THEN 0 ELSE 1 END,
+                created_at DESC 
             LIMIT %s OFFSET %s
             """
             return self.execute_query(query, (user_id, limit, offset))
