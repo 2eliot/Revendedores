@@ -347,37 +347,53 @@ class Database:
                     return None
 
             except json.JSONDecodeError:
-                # Si no es JSON, asumir que es un PIN en texto plano
-                # Limpiar la respuesta de posibles etiquetas HTML
-                clean_response = response_data
+                # Si no es JSON válido, intentar extraer JSON después de los warnings de PHP
+                try:
+                    # Buscar donde empieza el JSON válido después de los warnings
+                    json_start = response_data.find('{')
+                    if json_start != -1:
+                        json_part = response_data[json_start:]
+                        json_response = json.loads(json_part)
+                        
+                        # Procesar igual que arriba
+                        alert_status = json_response.get('ALERTA') or json_response.get('alerta', '').upper()
+                        pin_code = json_response.get('PIN') or json_response.get('pin')
 
-                # Remover advertencias de PHP si existen
-                if '<BR />' in clean_response or '<B>WARNING</B>' in clean_response:
-                    # Buscar el PIN después de las advertencias
-                    lines = clean_response.split('\n')
-                    for line in lines:
-                        line = line.strip()
-                        if line and not line.startswith('<') and len(line) >= 4 and len(line) <= 20:
-                            pin_code = line.upper().strip()
-                            return {
-                                'pin_code': pin_code,
-                                'value': amount_value,
-                                'source': 'provider_api'
-                            }
-                    print(f"No se pudo extraer PIN válido de la respuesta: {clean_response}")
-                    return None
-                else:
-                    # Respuesta en texto plano limpia
-                    if len(clean_response) >= 4 and len(clean_response) <= 20:
-                        pin_code = clean_response.upper().strip()
-                        return {
-                            'pin_code': pin_code,
-                            'value': amount_value,
-                            'source': 'provider_api'
-                        }
+                        # Si pin es null pero hay mensaje, extraer PIN del mensaje
+                        if not pin_code and 'mensaje' in json_response:
+                            mensaje = json_response['mensaje']
+                            # Buscar el PIN en el mensaje usando regex
+                            import re
+                            pin_match = re.search(r'<b>Pin:<\/b>\s*([A-Z0-9]+)', mensaje)
+                            if pin_match:
+                                pin_code = pin_match.group(1).strip()
+                                print(f"PIN extraído del mensaje después de warnings: {pin_code}")
+
+                        if (alert_status == 'VERDE' or alert_status == 'GREEN') and pin_code:
+                            pin_code = pin_code.upper().strip()
+
+                            # Validar que el PIN tenga un formato válido
+                            if len(pin_code) >= 4 and len(pin_code) <= 20:
+                                return {
+                                    'pin_code': pin_code,
+                                    'value': amount_value,
+                                    'source': 'provider_api'
+                                }
+                            else:
+                                print(f"PIN recibido del proveedor tiene formato inválido: {pin_code}")
+                                return None
+                        else:
+                            error_msg = json_response.get('MENSAJE', 'Error desconocido')
+                            print(f"Error de la API del proveedor después de warnings: {error_msg}")
+                            return None
+                            
                     else:
-                        print(f"Respuesta inválida del proveedor: {clean_response}")
+                        print(f"No se pudo encontrar JSON válido en la respuesta: {response_data}")
                         return None
+                        
+                except json.JSONDecodeError:
+                    print(f"Error al parsear JSON después de limpiar warnings: {response_data}")
+                    return None
 
         except requests.exceptions.RequestException as e:
             print(f"Error al conectar con el proveedor de PINs: {e}")
