@@ -59,7 +59,13 @@ class Database:
         VALUES (%s, %s, %s, %s, NOW())
         RETURNING *
         """
-        return self.execute_query(query, (user_id, pin, transaction_id, amount))
+        result = self.execute_query(query, (user_id, pin, transaction_id, amount))
+        
+        # Limpiar transacciones antiguas después de insertar una nueva
+        if result:
+            self.cleanup_old_transactions(user_id)
+            
+        return result
 
     def get_user_transactions(self, user_id, limit=10, offset=0):
         query = """
@@ -92,6 +98,7 @@ class Database:
                     transaction_id=f"BALANCE-{user_id}-{int(__import__('time').time())}",
                     amount=difference
                 )
+                # La limpieza automática ya se ejecuta en insert_transaction
 
         return result
 
@@ -176,6 +183,7 @@ class Database:
                 transaction_id=f"CREDIT-{user_id}-{int(__import__('time').time())}",
                 amount=amount
             )
+            # La limpieza automática ya se ejecuta en insert_transaction
 
         return result is not None and len(result) > 0
 
@@ -246,3 +254,28 @@ class Database:
         query = "SELECT * FROM pins WHERE pin_code = %s"
         result = self.execute_query(query, (pin_code,))
         return result[0] if result else None
+
+    def cleanup_old_transactions(self, user_id, max_transactions=30):
+        """Eliminar transacciones antiguas si el usuario tiene más del máximo permitido"""
+        # Contar transacciones del usuario
+        count_query = "SELECT COUNT(*) FROM transactions WHERE user_id = %s"
+        count_result = self.execute_query(count_query, (user_id,))
+        
+        if count_result and count_result[0]['count'] > max_transactions:
+            # Eliminar las transacciones más antiguas, dejando solo las últimas max_transactions
+            delete_query = """
+            DELETE FROM transactions 
+            WHERE user_id = %s 
+            AND id NOT IN (
+                SELECT id FROM (
+                    SELECT id FROM transactions 
+                    WHERE user_id = %s 
+                    ORDER BY created_at DESC 
+                    LIMIT %s
+                ) AS recent_transactions
+            )
+            """
+            result = self.execute_query(delete_query, (user_id, user_id, max_transactions))
+            return result is not None
+        
+        return True
