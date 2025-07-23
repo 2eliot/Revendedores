@@ -90,7 +90,7 @@
     <ul class="transaction-list">
       {% if transactions %}
         {% for transaction in transactions %}
-          {% if transaction.pin != 'ADMIN' or 'CREDIT' not in transaction.transaction_id %}
+          {% if transaction.pin != 'ADMIN' and transaction.pin != 'PIN' and transaction.pin and 'BALANCE' not in transaction.transaction_id %}
         <li class="{{ 'admin-transaction' if transaction.pin == 'ADMIN' else '' }}">
           <div><strong>ID:</strong> {{ transaction.id }}</div>
           {% if session.get('user_id') == 'ADMIN001' %}
