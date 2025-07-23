@@ -1245,22 +1245,38 @@ body {
     padding: 1.5rem;
   }
 
+  .precios-section h2 {
+    margin: 0 0 1rem 0;
+    color: #333;
+    font-size: 1.5rem;
+  }
+
+  .precios-section > p {
+    color: #666;
+    margin-bottom: 2rem;
+    font-size: 1rem;
+  }
+
   .game-prices-section {
     background: #f8f9fa;
     border-radius: 8px;
     padding: 1.5rem;
     margin-bottom: 2rem;
+    border: 1px solid #e9ecef;
   }
 
   .game-prices-section h3 {
-    margin: 0 0 1rem 0;
+    margin: 0 0 1.5rem 0;
     color: #007bff;
     font-size: 1.2rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #007bff;
+    display: inline-block;
   }
 
   .prices-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 1rem;
     margin-bottom: 1.5rem;
   }
@@ -1273,6 +1289,11 @@ body {
     padding: 0.75rem;
     border-radius: 6px;
     border: 1px solid #e9ecef;
+    transition: border-color 0.3s ease;
+  }
+
+  .price-item:hover {
+    border-color: #007bff;
   }
 
   .price-item label {
@@ -1280,20 +1301,67 @@ body {
     font-weight: 500;
     color: #495057;
     font-size: 0.9rem;
+    min-width: 180px;
   }
 
   .price-item input {
     width: 80px;
-    padding: 0.4rem;
+    padding: 0.5rem;
     border: 1px solid #ced4da;
     border-radius: 4px;
     text-align: right;
+    font-weight: 500;
+    transition: border-color 0.3s ease;
+  }
+
+  .price-item input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
   }
 
   .price-item span {
-    color: #6c757d;
-    font-size: 0.85rem;
+    color: #28a745;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .price-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .price-actions .btn {
+    padding: 0.7rem 1.5rem;
+    font-size: 0.95rem;
     font-weight: 500;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+  }
+
+  .price-actions .btn-success {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    border: none;
+    box-shadow: 0 2px 4px rgba(40,167,69,0.3);
+  }
+
+  .price-actions .btn-success:hover {
+    background: linear-gradient(135deg, #218838, #1e9ecb);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(40,167,69,0.4);
+  }
+
+  .price-actions .btn-secondary {
+    background: #6c757d;
+    border: none;
+    color: white;
+  }
+
+  .price-actions .btn-secondary:hover {
+    background: #5a6268;
+    transform: translateY(-1px);
   }
 
   /* Status badges más legibles */
@@ -1317,5 +1385,75 @@ body {
     padding: 0.5rem 1rem;
     font-size: 0.9rem;
     width: 100%;
+  }
+
+  /* Estilos móviles para gestión de precios */
+  .precios-section {
+    padding: 1rem 0.5rem;
+  }
+
+  .precios-section h2 {
+    font-size: 1.2rem;
+    text-align: center;
+  }
+
+  .game-prices-section {
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .game-prices-section h3 {
+    font-size: 1.1rem;
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+
+  .prices-grid {
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+    margin-bottom: 1rem;
+  }
+
+  .price-item {
+    padding: 0.8rem;
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .price-item label {
+    margin-bottom: 0.5rem;
+    min-width: auto;
+    font-size: 0.9rem;
+  }
+
+  .price-item input {
+    width: 100%;
+    padding: 0.8rem;
+    font-size: 1.1rem;
+    text-align: center;
+  }
+
+  .price-item span {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.2rem;
+  }
+
+  .price-item {
+    position: relative;
+  }
+
+  .price-actions {
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .price-actions .btn {
+    width: 100%;
+    padding: 1rem;
+    font-size: 1rem;
   }
 }

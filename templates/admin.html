@@ -180,7 +180,119 @@
       <div id="precios-tab" class="tab-content">
         <div class="precios-section">
           <h2>Gestión de Precios</h2>
-          <p>Aquí podrás actualizar los precios de los paquetes de juegos.</p>
+          <p>Actualiza los precios de los paquetes de juegos en tiempo real.</p>
+
+          <!-- Free Fire Latam -->
+          <div class="game-prices-section">
+            <h3>🔥 Free Fire Latam</h3>
+            <div class="prices-grid" id="freefire-prices">
+              <div class="price-item">
+                <label>110 💎 Diamantes:</label>
+                <span>$</span>
+                <input type="number" step="0.01" min="0" data-option="1" class="price-input-ff" placeholder="0.66">
+              </div>
+              <div class="price-item">
+                <label>341 💎 Diamantes:</label>
+                <span>$</span>
+                <input type="number" step="0.01" min="0" data-option="2" class="price-input-ff" placeholder="1.99">
+              </div>
+              <div class="price-item">
+                <label>572 💎 Diamantes:</label>
+                <span>$</span>
+                <input type="number" step="0.01" min="0" data-option="3" class="price-input-ff" placeholder="3.35">
+              </div>
+              <div class="price-item">
+                <label>1.166 💎 Diamantes:</label>
+                <span>$</span>
+                <input type="number" step="0.01" min="0" data-option="4" class="price-input-ff" placeholder="6.70">
+              </div>
+              <div class="price-item">
+                <label>2.376 💎 Diamantes:</label>
+                <span>$</span>
+                <input type="number" step="0.01" min="0" data-option="5" class="price-input-ff" placeholder="12.70">
+              </div>
+              <div class="price-item">
+                <label>6.138 💎 Diamantes:</label>
+                <span>$</span>
+                <input type="number" step="0.01" min="0" data-option="6" class="price-input-ff" placeholder="29.50">
+              </div>
+              <div class="price-item">
+                <label>🎫 Tarjeta Básica:</label>
+                <span>$</span>
+                <input type="number" step="0.01" min="0" data-option="7" class="price-input-ff" placeholder="0.40">
+              </div>
+              <div class="price-item">
+                <label>🎫 Tarjeta Semanal:</label>
+                <span>$</span>
+                <input type="number" step="0.01" min="0" data-option="8" class="price-input-ff" placeholder="1.40">
+              </div>
+              <div class="price-item">
+                <label>🎫 Tarjeta Mensual:</label>
+                <span>$</span>
+                <input type="number" step="0.01" min="0" data-option="9" class="price-input-ff" placeholder="6.50">
+              </div>
+            </div>
+            <div class="price-actions">
+              <button onclick="updateFreefirePrices()" class="btn btn-success">💾 Guardar Precios Free Fire</button>
+              <button onclick="loadCurrentPrices('freefire_latam')" class="btn btn-secondary">🔄 Cargar Precios Actuales</button>
+            </div>
+          </div>
+
+          <!-- Block Striker -->
+          <div class="game-prices-section">
+            <h3>⚡ Block Striker</h3>
+            <div class="prices-grid" id="blockstriker-prices">
+              <div class="price-item">
+                <label>100+16 🪙 Monedas:</label>
+                <span>$</span>
+                <input type="number" step="0.01" min="0" data-option="1" class="price-input-bs" placeholder="0.82">
+              </div>
+              <div class="price-item">
+                <label>300+52 🪙 Monedas:</label>
+                <span>$</span>
+                <input type="number" step="0.01" min="0" data-option="2" class="price-input-bs" placeholder="2.60">
+              </div>
+              <div class="price-item">
+                <label>500+94 🪙 Monedas:</label>
+                <span>$</span>
+                <input type="number" step="0.01" min="0" data-option="3" class="price-input-bs" placeholder="4.30">
+              </div>
+              <div class="price-item">
+                <label>1,000+210 🪙 Monedas:</label>
+                <span>$</span>
+                <input type="number" step="0.01" min="0" data-option="4" class="price-input-bs" placeholder="8.65">
+              </div>
+              <div class="price-item">
+                <label>2,000+486 🪙 Monedas:</label>
+                <span>$</span>
+                <input type="number" step="0.01" min="0" data-option="5" class="price-input-bs" placeholder="17.30">
+              </div>
+              <div class="price-item">
+                <label>5,000+1,380 🪙 Monedas:</label>
+                <span>$</span>
+                <input type="number" step="0.01" min="0" data-option="6" class="price-input-bs" placeholder="43.15">
+              </div>
+              <div class="price-item">
+                <label>🎖️ Pase Elite:</label>
+                <span>$</span>
+                <input type="number" step="0.01" min="0" data-option="7" class="price-input-bs" placeholder="3.50">
+              </div>
+              <div class="price-item">
+                <label>🎖️ Pase Elite Plus:</label>
+                <span>$</span>
+                <input type="number" step="0.01" min="0" data-option="8" class="price-input-bs" placeholder="8.00">
+              </div>
+              <div class="price-item">
+                <label>🔫 Pase de Mejora:</label>
+                <span>$</span>
+                <input type="number" step="0.01" min="0" data-option="9" class="price-input-bs" placeholder="1.85">
+              </div>
+            </div>
+            <div class="price-actions">
+              <button onclick="updateBlockStrikerPrices()" class="btn btn-success">💾 Guardar Precios Block Striker</button>
+              <button onclick="loadCurrentPrices('block_striker')" class="btn btn-secondary">🔄 Cargar Precios Actuales</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -540,6 +652,123 @@
         event.target.style.display = 'none';
       }
     }
+
+    // Funciones para gestión de precios
+    async function loadCurrentPrices(gameType) {
+      try {
+        const response = await fetch('/admin/get-game-prices');
+        const data = await response.json();
+
+        if (data.success) {
+          const prices = data.prices[gameType] || {};
+          const className = gameType === 'freefire_latam' ? 'price-input-ff' : 'price-input-bs';
+          
+          document.querySelectorAll(`.${className}`).forEach(input => {
+            const option = input.getAttribute('data-option');
+            if (prices[option]) {
+              input.value = prices[option];
+            }
+          });
+          
+          alert(`Precios de ${gameType === 'freefire_latam' ? 'Free Fire Latam' : 'Block Striker'} cargados`);
+        } else {
+          alert('Error cargando precios: ' + data.error);
+        }
+      } catch (error) {
+        alert('Error al cargar precios: ' + error);
+      }
+    }
+
+    async function updateFreefirePrices() {
+      const prices = {};
+      let hasError = false;
+
+      document.querySelectorAll('.price-input-ff').forEach(input => {
+        const option = input.getAttribute('data-option');
+        const value = parseFloat(input.value);
+        
+        if (isNaN(value) || value < 0) {
+          alert(`Precio inválido para la opción ${option}`);
+          hasError = true;
+          return;
+        }
+        
+        prices[option] = value;
+      });
+
+      if (hasError) return;
+
+      try {
+        const response = await fetch('/admin/update-game-prices', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            game_type: 'freefire_latam',
+            prices: prices
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          alert('✅ Precios de Free Fire Latam actualizados exitosamente');
+        } else {
+          alert('Error: ' + data.error);
+        }
+      } catch (error) {
+        alert('Error al actualizar precios: ' + error);
+      }
+    }
+
+    async function updateBlockStrikerPrices() {
+      const prices = {};
+      let hasError = false;
+
+      document.querySelectorAll('.price-input-bs').forEach(input => {
+        const option = input.getAttribute('data-option');
+        const value = parseFloat(input.value);
+        
+        if (isNaN(value) || value < 0) {
+          alert(`Precio inválido para la opción ${option}`);
+          hasError = true;
+          return;
+        }
+        
+        prices[option] = value;
+      });
+
+      if (hasError) return;
+
+      try {
+        const response = await fetch('/admin/update-game-prices', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            game_type: 'block_striker',
+            prices: prices
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          alert('✅ Precios de Block Striker actualizados exitosamente');
+        } else {
+          alert('Error: ' + data.error);
+        }
+      } catch (error) {
+        alert('Error al actualizar precios: ' + error);
+      }
+    }
+
+    // Cargar precios actuales cuando se abre la pestaña
+    document.addEventListener('DOMContentLoaded', function() {
+      // Cargar precios automáticamente cuando se carga la página
+      setTimeout(() => {
+        loadCurrentPrices('freefire_latam');
+        loadCurrentPrices('block_striker');
+      }, 1000);
+    });
   </script>
 </body>
 </html>
