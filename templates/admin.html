@@ -119,30 +119,30 @@
 
           <!-- Formulario para agregar PINés -->
           <div class="add-pins-form">
-            <h3>Agregar Nuevo PIN</h3>
+            <h3>➕ Agregar Nuevo PIN</h3>
             <form onsubmit="addSinglePin(event)">
               <div class="form-row">
                 <div class="form-group">
-                  <label for="pin-code">Código del PIN:</label>
-                  <input type="text" id="pin-code" placeholder="Ej: ABC123XY" maxlength="20" required>
+                  <label for="pin-code">🔑 Código del PIN:</label>
+                  <input type="text" id="pin-code" placeholder="Ej: ABC123XY" maxlength="20" required autocomplete="off">
                 </div>
                 <div class="form-group">
-                  <label for="pin-value">Valor del PIN:</label>
+                  <label for="pin-value">💰 Valor del PIN:</label>
                   <select id="pin-value" required>
                     <option value="">-- Seleccionar valor --</option>
-                    <option value="1">Opción 1 - 110 💎 / $0.66</option>
-                    <option value="2">Opción 2 - 341 💎 / $1.99</option>
-                    <option value="3">Opción 3 - 572 💎 / $3.35</option>
-                    <option value="4">Opción 4 - 1.166 💎 / $6.70</option>
-                    <option value="5">Opción 5 - 2.376 💎 / $12.70</option>
-                    <option value="6">Opción 6 - 6.138 💎 / $29.50</option>
-                    <option value="7">Opción 7 - Tarjeta básica / $0.40</option>
-                    <option value="8">Opción 8 - Tarjeta semanal / $1.40</option>
-                    <option value="9">Opción 9 - Tarjeta mensual / $6.50</option>
+                    <option value="1">💎 110 diamantes - $0.66</option>
+                    <option value="2">💎 341 diamantes - $1.99</option>
+                    <option value="3">💎 572 diamantes - $3.35</option>
+                    <option value="4">💎 1.166 diamantes - $6.70</option>
+                    <option value="5">💎 2.376 diamantes - $12.70</option>
+                    <option value="6">💎 6.138 diamantes - $29.50</option>
+                    <option value="7">🎫 Tarjeta básica - $0.40</option>
+                    <option value="8">🎫 Tarjeta semanal - $1.40</option>
+                    <option value="9">🎫 Tarjeta mensual - $6.50</option>
                   </select>
                 </div>
                 <div class="form-group">
-                  <button type="submit" class="btn btn-success">Agregar PIN</button>
+                  <button type="submit" class="btn btn-success">✅ Agregar PIN</button>
                 </div>
               </div>
             </form>
