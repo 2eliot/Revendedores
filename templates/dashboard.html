@@ -184,13 +184,17 @@
         const data = await response.json();
 
         if (data.success) {
-          alert(`Transacción ${newStatus} exitosamente`);
-          location.reload();
+          showToast(`Transacción ${newStatus === 'aprobado' ? 'aprobada' : 'rechazada'} exitosamente`, 'success');
+          
+          // Actualizar la interfaz sin recargar la página
+          setTimeout(() => {
+            location.reload();
+          }, 1500);
         } else {
-          alert(data.error);
+          showToast(data.error || 'Error al procesar la transacción', 'error');
         }
       } catch (error) {
-        alert('Error al actualizar el status');
+        showToast('Error al actualizar el status', 'error');
       }
     }
 
@@ -217,6 +221,53 @@
         walletBox.classList.remove('visible');
       }
     });
+  </script>
+<!-- Contenedor de notificaciones toast -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <script>
+    // Función para mostrar notificaciones toast
+    function showToast(message, type = 'success', duration = 4000) {
+      const container = document.getElementById('toast-container');
+      
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      
+      const icons = {
+        success: '✅',
+        error: '❌',
+        info: 'ℹ️'
+      };
+      
+      toast.innerHTML = `
+        <div class="toast-content">
+          <span class="toast-icon">${icons[type] || '✅'}</span>
+          <span class="toast-message">${message}</span>
+          <button class="toast-close" onclick="removeToast(this.parentElement.parentElement)">×</button>
+        </div>
+      `;
+      
+      container.appendChild(toast);
+      
+      // Mostrar toast con animación
+      setTimeout(() => {
+        toast.classList.add('show');
+      }, 100);
+      
+      // Auto-remover después del tiempo especificado
+      setTimeout(() => {
+        removeToast(toast);
+      }, duration);
+    }
+    
+    function removeToast(toast) {
+      if (toast && toast.parentElement) {
+        toast.classList.remove('show');
+        setTimeout(() => {
+          toast.remove();
+        }, 300);
+      }
+    }
   </script>
 </body>
 </html>
