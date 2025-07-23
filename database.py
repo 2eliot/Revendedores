@@ -267,6 +267,67 @@ class Database:
         result = self.execute_query(query, (pin_code,))
         return result[0] if result else None
 
+    def get_pin_from_provider(self, amount_value):
+        """Obtener PIN del proveedor API para Free Fire Latam"""
+        import requests
+        import os
+        
+        # Obtener credenciales del proveedor desde secretos
+        provider_user = os.getenv('PROVIDER_USER')
+        provider_password = os.getenv('PROVIDER_PASSWORD')
+        
+        if not provider_user or not provider_password:
+            print("Error: Credenciales del proveedor no configuradas")
+            return None
+        
+        # URL de la API del proveedor
+        api_url = "https://inefableshop.net/conexion_api/api.php"
+        
+        # Parámetros para la solicitud
+        params = {
+            'action': 'recarga',
+            'usuario': provider_user,
+            'clave': provider_password,
+            'tipo': 'recargaPinFreefire',
+            'monto': str(amount_value),
+            'numero': '0'
+        }
+        
+        try:
+            # Realizar solicitud a la API del proveedor
+            response = requests.get(api_url, params=params, timeout=30)
+            response.raise_for_status()
+            
+            # La respuesta debería contener el PIN
+            response_data = response.text.strip()
+            
+            # Verificar si la respuesta contiene un PIN válido
+            if response_data and len(response_data) >= 4:
+                # Extraer el PIN de la respuesta
+                # Asumiendo que la respuesta es directamente el PIN o contiene el PIN
+                pin_code = response_data.upper().strip()
+                
+                # Validar que el PIN tenga un formato válido
+                if len(pin_code) >= 4 and len(pin_code) <= 20:
+                    return {
+                        'pin_code': pin_code,
+                        'value': amount_value,
+                        'source': 'provider_api'
+                    }
+                else:
+                    print(f"PIN recibido del proveedor tiene formato inválido: {pin_code}")
+                    return None
+            else:
+                print(f"Respuesta inválida del proveedor: {response_data}")
+                return None
+                
+        except requests.exceptions.RequestException as e:
+            print(f"Error al conectar con el proveedor de PINs: {e}")
+            return None
+        except Exception as e:
+            print(f"Error inesperado al obtener PIN del proveedor: {e}")
+            return None
+
     def cleanup_old_transactions(self, user_id, max_transactions=30):
         """Eliminar transacciones antiguas si el usuario tiene más del máximo permitido"""
         # Contar transacciones del usuario

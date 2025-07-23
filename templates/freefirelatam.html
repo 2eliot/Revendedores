@@ -160,6 +160,7 @@
               <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>💰 Costo:</strong> $${price}</p>
               <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>👤 Usuario:</strong> {{ session.get('nombre', '') }} {{ session.get('apellido', '') }}</p>
               <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>📅 Fecha y Hora:</strong> ${fechaHora}</p>
+              <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>🔄 Origen:</strong> ${data.source === 'provider_api' ? 'Proveedor API' : 'Base de datos local'}</p>
             </div>
           `;
           

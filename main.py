@@ -303,13 +303,29 @@ def validate_recharge():
                 "error": f"Saldo insuficiente. Tu saldo actual es ${current_balance:.2f} y necesitas ${amount:.2f}. Recarga tu cuenta primero."
             }), 400
         
-        # Buscar un PIN disponible del valor exacto
+        # PASO 1: Buscar un PIN disponible del valor exacto en la base de datos local
         available_pin = db.get_available_pin_by_value(amount)
         
+        pin_from_provider = None
+        
+        # PASO 2: Si no hay PINs locales, consultar al proveedor de la API (solo para Free Fire Latam)
         if not available_pin:
-            return jsonify({
-                "error": f"No hay PINés disponibles de ${amount}. Contacta al administrador."
-            }), 400
+            print(f"No hay PINs locales disponibles de ${amount}. Consultando proveedor de la API...")
+            
+            # Convertir el monto a valor entero para la API del proveedor (1-9)
+            amount_value = int(amount)
+            if amount_value < 1 or amount_value > 9:
+                return jsonify({
+                    "error": f"Monto ${amount} no válido para el proveedor. Debe ser entre $1 y $9."
+                }), 400
+            
+            # Obtener PIN del proveedor de la API
+            pin_from_provider = db.get_pin_from_provider(amount_value)
+            
+            if not pin_from_provider:
+                return jsonify({
+                    "error": f"No hay PINés disponibles de ${amount}. No se pudo obtener PIN del proveedor. Contacta al administrador."
+                }), 400
         
         # Descontar el monto del saldo del usuario
         new_balance = current_balance - amount
@@ -318,30 +334,57 @@ def validate_recharge():
         if balance_updated is None:
             return jsonify({"error": "Error al actualizar el saldo"}), 500
         
-        # Marcar el PIN como usado
-        used_pin = db.use_pin(available_pin['id'], user_id)
-        
-        if used_pin:
-            # Registrar la transacción
-            transaction_id = f"FF-{user_id}-{int(__import__('time').time())}"
+        # Procesar según el origen del PIN
+        if available_pin:
+            # PIN local - marcar como usado
+            used_pin = db.use_pin(available_pin['id'], user_id)
+            
+            if used_pin:
+                # Registrar la transacción
+                transaction_id = f"FF-{user_id}-{int(__import__('time').time())}"
+                db.insert_transaction(
+                    user_id=user_id,
+                    pin=available_pin['pin_code'],
+                    transaction_id=transaction_id,
+                    amount=-amount
+                )
+                
+                return jsonify({
+                    "success": True,
+                    "pin": available_pin['pin_code'],
+                    "transaction_id": transaction_id,
+                    "amount": amount,
+                    "new_balance": f"{new_balance:.2f}",
+                    "source": "local"
+                })
+            else:
+                # Si falla el uso del PIN, revertir el saldo
+                db.update_user_balance(user_id, current_balance)
+                return jsonify({"error": "Error al procesar la recarga"}), 500
+                
+        elif pin_from_provider:
+            # PIN del proveedor - entregar directamente
+            transaction_id = f"FF-PROVIDER-{user_id}-{int(__import__('time').time())}"
             db.insert_transaction(
                 user_id=user_id,
-                pin=available_pin['pin_code'],
+                pin=pin_from_provider['pin_code'],
                 transaction_id=transaction_id,
-                amount=-amount  # Monto negativo para indicar que se descontó
+                amount=-amount
             )
             
             return jsonify({
                 "success": True,
-                "pin": available_pin['pin_code'],
+                "pin": pin_from_provider['pin_code'],
                 "transaction_id": transaction_id,
                 "amount": amount,
-                "new_balance": f"{new_balance:.2f}"
+                "new_balance": f"{new_balance:.2f}",
+                "source": "provider_api"
             })
+        
         else:
-            # Si falla el uso del PIN, revertir el saldo
+            # Si llegamos aquí, algo salió mal
             db.update_user_balance(user_id, current_balance)
-            return jsonify({"error": "Error al procesar la recarga"}), 500
+            return jsonify({"error": "Error inesperado al procesar la recarga"}), 500
 
     finally:
         db.disconnect()
