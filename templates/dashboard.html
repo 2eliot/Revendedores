@@ -133,12 +133,12 @@
           {% if transaction.player_id %}
           <div><strong>👤 ID Jugador:</strong> {{ transaction.player_id }}</div>
           {% endif %}
-          {% if transaction.status == 'procesando' and session.get('user_id') == 'ADMIN001' %}
+          {% endif %}
+          {% if transaction.game_type == 'Block Striker' and transaction.status == 'procesando' and session.get('user_id') == 'ADMIN001' %}
           <div class="block-striker-actions">
             <button onclick="updateBlockStrikerStatus('{{ transaction.transaction_id }}', 'aprobado')" class="btn-approve">✅ Aprobar</button>
             <button onclick="updateBlockStrikerStatus('{{ transaction.transaction_id }}', 'rechazado')" class="btn-reject">❌ Rechazar</button>
           </div>
-          {% endif %}
           {% endif %}
           <div><strong>Fecha:</strong> {{ transaction.created_at.strftime('%d/%m/%Y %H:%M') }}</div>
         </li>
