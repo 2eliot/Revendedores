@@ -47,6 +47,18 @@ CREATE TABLE IF NOT EXISTS pins (
     FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 
+-- Crear tabla de pines
+CREATE TABLE IF NOT EXISTS pins (
+    id SERIAL PRIMARY KEY,
+    pin_code VARCHAR(20) UNIQUE NOT NULL,
+    value DECIMAL(10,2) NOT NULL,
+    is_used BOOLEAN DEFAULT false,
+    user_id VARCHAR(50) NULL,
+    used_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
+
 -- Insertar usuario administrador simple
 INSERT INTO users (user_id, nombre, apellido, telefono, email, password, balance) 
 VALUES ('ADMIN001', 'Admin', 'Usuario', '000000000', 'admin', 'temp_password', 0.00)
