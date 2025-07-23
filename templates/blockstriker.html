@@ -76,34 +76,26 @@
       <label for="amount-select">Selecciona el Paquete</label>
       <select id="amount-select" required>
         <option value="">-- Selecciona un paquete --</option>
-        <option value="1">100 🪙 Monedas / $1.00 (⏳)</option>
-        <option value="2">250 🪙 Monedas / $2.50 (⏳)</option>
-        <option value="3">500 🪙 Monedas / $5.00 (⏳)</option>
-        <option value="4">1.000 🪙 Monedas / $10.00 (⏳)</option>
-        <option value="5">2.500 🪙 Monedas / $25.00 (⏳)</option>
-        <option value="6">5.000 🪙 Monedas / $50.00 (⏳)</option>
-        <option value="7">Pase Premium / $3.99 (⏳)</option>
-        <option value="8">Pase Elite / $9.99 (⏳)</option>
-        <option value="9">Pack Especial / $19.99 (⏳)</option>
+        <option value="1">100 monedas / $1.00</option>
+        <option value="2">250 monedas / $2.50</option>
+        <option value="3">500 monedas / $5.00</option>
+        <option value="4">1.000 monedas / $10.00</option>
+        <option value="5">2.500 monedas / $25.00</option>
+        <option value="6">5.000 monedas / $50.00</option>
+        <option value="7">Pase Premium / $3.99</option>
+        <option value="8">Pase Elite / $9.99</option>
+        <option value="9">Pack Especial / $19.99</option>
       </select>
 
-      <button type="submit">Validar Recarga</button>
+      <button type="submit">Procesar Compra</button>
     </form>
 
     <div class="juego-descripcion">
       <h3>Descripción del Juego</h3>
-      <p>Proceso de compra directa en Block Striker:</p>
-      <li>Ingresa tu ID de jugador de Block Striker</li>
-      <li>Selecciona el paquete que deseas comprar</li>
-      <li>La compra se procesará automáticamente</li>
-      <li>Los recursos se agregarán directamente a tu cuenta</li>
-      <li>Reinicia el juego para ver los cambios</li>
-      <li>¡No necesitas códigos ni pasos adicionales!</li>
+      <p>Block Striker es un juego de acción donde puedes obtener monedas y pases especiales.</p>
+      <p>Los recursos se agregan automáticamente a tu cuenta después de la compra.</p>
       <p><strong>Saldo actual:</strong> ${{ balance }}</p>
       <div id="message" class="message"></div>
-      <div class="text-center" style="margin-top: 1.5rem;">
-          <button class="btn btn-outline-info" style="border-radius: 25px; padding: 10px 25px; font-weight: bold; font-size: 1rem;" disabled>🎮 Próximamente disponible</button>
-      </div>
     </div>
   </div>
 
@@ -171,21 +163,17 @@
           // Cambiar toda la descripción por el mensaje de éxito
           const descripcionDiv = document.querySelector('.juego-descripcion');
           descripcionDiv.innerHTML = `
-            <h3>🎉 ¡Compra de Block Striker Exitosa!</h3>
+            <h3>🎉 ¡Compra Exitosa!</h3>
             <div style="background: #f8f9fa; color: #333; padding: 1.5rem; border-radius: 8px; margin: 1rem 0; border: 1px solid #dee2e6;">
-              <p style="margin: 0.5rem 0; font-size: 1.1rem; color: #28a745; font-weight: bold;">
-                ✅ La compra se ha procesado directamente en tu cuenta de Block Striker
-              </p>
-              <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>👤 ID Jugador:</strong> ${data.player_id}</p>
+              <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>🆔 ID Jugador:</strong> ${data.player_id}</p>
               <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>🆔 ID Transacción:</strong> ${data.transaction_id}</p>
               <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>💰 Costo:</strong> $${realPrice}</p>
               <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>👤 Usuario:</strong> {{ session.get('nombre', '') }} {{ session.get('apellido', '') }}</p>
               <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>📅 Fecha y Hora:</strong> ${fechaHora}</p>
-              <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>🔄 Estado:</strong> Procesado Directamente</p>
-              <div style="margin-top: 1rem; padding: 1rem; background: #e7f3ff; border-radius: 6px; border-left: 4px solid #007bff;">
+              <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>🔄 Estado:</strong> <span style="color: #856404;">Procesando</span></p>
+              <div style="background: #e7f3ff; padding: 1rem; border-radius: 6px; border-left: 4px solid #007bff; margin-top: 1rem;">
                 <p style="margin: 0; font-size: 0.95rem; color: #004085;">
-                  💡 <strong>Nota:</strong> Los recursos se han agregado automáticamente a tu cuenta de Block Striker. 
-                  Reinicia el juego para ver los cambios reflejados.
+                  💡 <strong>Nota:</strong> Los recursos se agregarán a tu cuenta una vez que la transacción sea aprobada por el administrador.
                 </p>
               </div>
             </div>
@@ -219,8 +207,6 @@
     function toggleWalletBox() {
       document.getElementById("wallet-box").classList.toggle("visible");
     }
-
-    // Block Striker no requiere códigos - compra directa
 
     // Cerrar ventanas al hacer clic fuera
     document.addEventListener('click', function(event) {
