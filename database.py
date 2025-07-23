@@ -367,6 +367,21 @@ class Database:
         print(f"[BLOCK STRIKER] Función no implementada aún")
         return None
 
+    def insert_block_striker_transaction(self, user_id, player_id, code, transaction_id, amount, option_value):
+        """Insertar transacción específica de Block Striker con player_id"""
+        query = """
+        INSERT INTO transactions (user_id, pin, transaction_id, amount, created_at, player_id, game_type, option_value)
+        VALUES (%s, %s, %s, %s, NOW(), %s, %s, %s)
+        RETURNING *
+        """
+        result = self.execute_query(query, (user_id, code, transaction_id, amount, player_id, 'Block Striker', option_value))
+
+        # Limpiar transacciones antiguas después de insertar una nueva
+        if result:
+            self.cleanup_old_transactions(user_id)
+
+        return result
+
     def cleanup_old_transactions(self, user_id, max_transactions=30):
         """Eliminar transacciones antiguas si el usuario tiene más del máximo permitido"""
         # Contar transacciones del usuario

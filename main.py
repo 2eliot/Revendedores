@@ -412,7 +412,84 @@ def blockstriker():
 @login_required
 def block_striker_validate_recharge():
     """ENDPOINT EXCLUSIVO para Block Striker - Completamente independiente"""
-    return jsonify({"error": "Block Striker no implementado aún"}), 501
+    db = Database()
+    if not db.connect():
+        return jsonify({"error": "Error de conexión a la base de datos"}), 500
+
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "Datos de solicitud inválidos"}), 400
+            
+        user_id = session['user_id']
+        player_id = data.get('player_id', '').strip()  # ID del jugador de Block Striker
+        option_value = data.get('option_value')  # Valor 1-9 específico de Block Striker
+        real_price = data.get('real_price')      # Precio real en USD
+        
+        if not player_id:
+            return jsonify({"error": "ID del jugador es requerido"}), 400
+            
+        if option_value is None or real_price is None:
+            return jsonify({"error": "Datos de recarga incompletos"}), 400
+            
+        option_value = int(option_value)
+        real_price = float(real_price)
+        
+        # Validación específica para Block Striker (1-9)
+        if option_value < 1 or option_value > 9:
+            return jsonify({"error": "Opción de Block Striker inválida"}), 400
+            
+        if real_price <= 0:
+            return jsonify({"error": "Precio inválido"}), 400
+        
+        # Verificar saldo del usuario
+        current_balance = float(db.get_user_balance(user_id))
+        if user_id != 'ADMIN001' and current_balance < real_price:
+            return jsonify({
+                "error": f"Saldo insuficiente. Tu saldo actual es ${current_balance:.2f} y necesitas ${real_price:.2f}. Recarga tu cuenta primero."
+            }), 400
+        
+        # Por ahora simulamos un código de Block Striker (cuando se implemente la API real)
+        import random
+        import string
+        simulated_code = 'BS' + ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+        
+        # Descontar saldo
+        if user_id != 'ADMIN001':
+            new_balance = current_balance - real_price
+            balance_updated = db.update_user_balance(user_id, new_balance)
+        else:
+            new_balance = current_balance
+            balance_updated = True
+        
+        if balance_updated is None:
+            return jsonify({"error": "Error al actualizar el saldo"}), 500
+        
+        # Crear transacción específica para Block Striker incluyendo el player_id
+        transaction_id = f"BLOCKSTRIKER-{user_id}-{int(__import__('time').time())}"
+        
+        # Insertar transacción con información específica de Block Striker
+        db.insert_block_striker_transaction(
+            user_id=user_id,
+            player_id=player_id,
+            code=simulated_code,
+            transaction_id=transaction_id,
+            amount=-real_price,
+            option_value=option_value
+        )
+        
+        return jsonify({
+            "success": True,
+            "code": simulated_code,
+            "player_id": player_id,
+            "transaction_id": transaction_id,
+            "amount": real_price,
+            "new_balance": f"{new_balance:.2f}",
+            "source": "block_striker_simulated"
+        })
+
+    finally:
+        db.disconnect()
 
 @app.route('/admin/users')
 @admin_required

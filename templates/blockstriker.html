@@ -138,8 +138,64 @@
         return;
       }
 
-      // Por ahora mostrar mensaje de que está en desarrollo
-      showMessage('🚧 Block Striker estará disponible próximamente. Mantente atento a las actualizaciones.', 'info');
+      const optionValue = select.value; // Valor 1-9
+      const realPrice = blockStrikerPrices[optionValue]; // Precio real en USD
+      
+      showMessage('Procesando recarga de Block Striker...', 'info');
+
+      try {
+        const response = await fetch('/block-striker/validate-recharge', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            player_id: playerId.value.trim(),
+            option_value: parseInt(optionValue),
+            real_price: realPrice
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          // Obtener fecha y hora actual
+          const now = new Date();
+          const fechaHora = now.toLocaleString('es-ES', {
+            day: '2-digit',
+            month: '2-digit', 
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+          });
+          
+          // Cambiar toda la descripción por el mensaje de éxito
+          const descripcionDiv = document.querySelector('.juego-descripcion');
+          descripcionDiv.innerHTML = `
+            <h3>🎉 ¡Recarga de Block Striker Exitosa!</h3>
+            <div style="background: #f8f9fa; color: #333; padding: 1.5rem; border-radius: 8px; margin: 1rem 0; border: 1px solid #dee2e6;">
+              <p style="margin: 0.5rem 0; font-size: 1.1rem; display: flex; align-items: center; gap: 10px;">
+                <strong>🎮 Código:</strong> 
+                <span id="code-value">${data.code}</span>
+                <button onclick="copyCode('${data.code}', this)" style="padding: 5px 10px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem;">
+                  📋 Copiar Código
+                </button>
+              </p>
+              <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>👤 ID Jugador:</strong> ${data.player_id}</p>
+              <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>🆔 ID Transacción:</strong> ${data.transaction_id}</p>
+              <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>💰 Costo:</strong> $${realPrice}</p>
+              <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>👤 Usuario:</strong> {{ session.get('nombre', '') }} {{ session.get('apellido', '') }}</p>
+              <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>📅 Fecha y Hora:</strong> ${fechaHora}</p>
+              <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>🔄 Origen:</strong> Simulado (Desarrollo)</p>
+            </div>
+          `;
+          
+          showMessage('', ''); // Limpiar mensaje
+        } else {
+          showMessage(data.error, 'error');
+        }
+      } catch (error) {
+        showMessage('Error de conexión. Intenta nuevamente.', 'error');
+      }
     }
 
     function showMessage(text, type) {
@@ -160,6 +216,23 @@
     
     function toggleWalletBox() {
       document.getElementById("wallet-box").classList.toggle("visible");
+    }
+
+    // Función para copiar el código al portapapeles
+    function copyCode(code, buttonElement) {
+      navigator.clipboard.writeText(code).then(function() {
+        // Cambiar temporalmente el texto del botón
+        const originalText = buttonElement.innerHTML;
+        buttonElement.innerHTML = '✅ Copiado';
+        buttonElement.style.background = '#28a745';
+        
+        setTimeout(function() {
+          buttonElement.innerHTML = originalText;
+          buttonElement.style.background = '#007bff';
+        }, 2000);
+      }).catch(function(err) {
+        alert('Error al copiar: ' + err);
+      });
     }
 
     // Cerrar ventanas al hacer clic fuera

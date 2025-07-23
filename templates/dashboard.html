@@ -105,7 +105,13 @@
             {% endif %}
           </div>
           {% else %}
-          <div><strong>PIN:</strong> {{ transaction.pin }}</div>
+          <div><strong>PIN/Código:</strong> {{ transaction.pin }}</div>
+          {% if transaction.player_id %}
+          <div><strong>ID Jugador:</strong> {{ transaction.player_id }}</div>
+          {% endif %}
+          {% if transaction.game_type %}
+          <div><strong>Juego:</strong> {{ transaction.game_type }}</div>
+          {% endif %}
           {% endif %}
           <div><strong>Transacción:</strong> {{ transaction.transaction_id }}</div>
           {% if transaction.amount %}
