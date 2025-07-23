@@ -70,7 +70,7 @@ body {
 /* Íconos del header a la derecha */
 .icon-container {
   display: flex;
-  gap: 1rem;
+  gap: 1.5rem;
   align-items: center;
   position: relative;
   margin-left: auto;
