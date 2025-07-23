@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -75,16 +74,17 @@
 
       <label for="amount-select">Selecciona el Paquete</label>
       <select id="amount-select" required>
-        <option value="">-- Selecciona un paquete --</option>
-        <option value="1">100 monedas / $1.00</option>
-        <option value="2">250 monedas / $2.50</option>
-        <option value="3">500 monedas / $5.00</option>
-        <option value="4">1.000 monedas / $10.00</option>
-        <option value="5">2.500 monedas / $25.00</option>
-        <option value="6">5.000 monedas / $50.00</option>
-        <option value="7">Pase Premium / $3.99</option>
-        <option value="8">Pase Elite / $9.99</option>
-        <option value="9">Pack Especial / $19.99</option>
+        <option value="">Seleccione paquete</option>
+        <option value="1">100+16 🪙 / $0.82</option>
+        <option value="2">300+52 🪙 / $2.60</option>
+        <option value="3">500+94 🪙 / $4.30</option>
+        <option value="4">1,000+210 🪙 / $8.65</option>
+        <option value="5">2,000+486 🪙 / $17.30</option>
+        <option value="6">5,000+1,380 🪙 / $43.15</option>
+        <option value="7">Pase Elite 🎖️ / $3.50</option>
+        <option value="8">Pase Elite (Plus) 🎖️ / $8.00</option>
+        <option value="9">Pase de Mejora 🔫 / $1.85</option>
+        <option value="10">Cofre Camuflaje Ultra 💼 / $0.50</option>
       </select>
 
       <button type="submit">Procesar Compra</button>
@@ -102,15 +102,16 @@
   <script>
     // Mapeo de valores para Block Striker (independiente de otros juegos)
     const blockStrikerPrices = {
-      '1': 1.00,   // 100 monedas
-      '2': 2.50,   // 250 monedas
-      '3': 5.00,   // 500 monedas
-      '4': 10.00,  // 1.000 monedas
-      '5': 25.00,  // 2.500 monedas
-      '6': 50.00,  // 5.000 monedas
-      '7': 3.99,   // Pase Premium
-      '8': 9.99,   // Pase Elite
-      '9': 19.99   // Pack Especial
+      '1': 0.82,   // 100+16 🪙
+      '2': 2.60,   // 300+52 🪙
+      '3': 4.30,   // 500+94 🪙
+      '4': 8.65,   // 1,000+210 🪙
+      '5': 17.30,  // 2,000+486 🪙
+      '6': 43.15,  // 5,000+1,380 🪙
+      '7': 3.50,   // Pase Elite 🎖️
+      '8': 8.00,   // Pase Elite (Plus) 🎖️
+      '9': 1.85,   // Pase de Mejora 🔫
+      '10': 0.50   // Cofre Camuflaje Ultra 💼
     };
 
     async function handleRecharge(event) {
@@ -132,7 +133,7 @@
 
       const optionValue = select.value; // Valor 1-9
       const realPrice = blockStrikerPrices[optionValue]; // Precio real en USD
-      
+
       showMessage('Procesando recarga de Block Striker...', 'info');
 
       try {
@@ -159,7 +160,7 @@
             minute: '2-digit',
             second: '2-digit'
           });
-          
+
           // Cambiar toda la descripción por el mensaje de éxito
           const descripcionDiv = document.querySelector('.juego-descripcion');
           descripcionDiv.innerHTML = `
@@ -178,7 +179,7 @@
               </div>
             </div>
           `;
-          
+
           showMessage('', ''); // Limpiar mensaje
         } else {
           showMessage(data.error, 'error');
@@ -199,11 +200,11 @@
     function toggleUserBox() {
       document.getElementById("user-box").classList.toggle("visible");
     }
-    
+
     function toggleMenu() {
       document.getElementById("menu-juegos").classList.toggle("visible");
     }
-    
+
     function toggleWalletBox() {
       document.getElementById("wallet-box").classList.toggle("visible");
     }
@@ -213,20 +214,20 @@
       const userBox = document.getElementById("user-box");
       const menuJuegos = document.getElementById("menu-juegos");
       const walletBox = document.getElementById("wallet-box");
-      
+
       // Verificar si el clic no fue en los iconos o dentro de las ventanas
       const isUserIcon = event.target.closest('.user-icon');
       const isMenuIcon = event.target.closest('.hamburger');
       const isWalletIcon = event.target.closest('.wallet-icon');
-      
+
       if (!isUserIcon && userBox.classList.contains('visible')) {
         userBox.classList.remove('visible');
       }
-      
+
       if (!isMenuIcon && menuJuegos.classList.contains('visible')) {
         menuJuegos.classList.remove('visible');
       }
-      
+
       if (!isWalletIcon && walletBox.classList.contains('visible')) {
         walletBox.classList.remove('visible');
       }
