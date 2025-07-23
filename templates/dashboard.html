@@ -114,7 +114,6 @@
           {% endif %}
           {% endif %}
           <div><strong>Transacción:</strong> {{ transaction.transaction_id }}</div>
-          {% if transaction.amount %}
           <div><strong>Monto:</strong> 
             <span class="{{ 'positive-amount' if transaction.amount > 0 else 'negative-amount' }}">
               {{ '+' if transaction.amount > 0 else '' }}${{ transaction.amount }}
@@ -129,6 +128,11 @@
               {% endif %}
             {% endif %}
           </div>
+          {% if transaction.game_type == 'Block Striker' %}
+          <div><strong>🎮 Juego:</strong> Block Striker</div>
+          {% if transaction.player_id %}
+          <div><strong>👤 ID Jugador:</strong> {{ transaction.player_id }}</div>
+          {% endif %}
           {% endif %}
           {% if transaction.game_type == 'Block Striker' and transaction.status == 'procesando' and session.get('user_id') == 'ADMIN001' %}
           <div class="block-striker-actions">
