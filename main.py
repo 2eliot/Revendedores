@@ -294,50 +294,52 @@ def validate_recharge():
             return jsonify({"error": "Datos de solicitud inválidos"}), 400
             
         user_id = session['user_id']
-        amount_value = data.get('amount')
+        option_value = data.get('option_value')  # Valor 1-9 para la API
+        real_price = data.get('real_price')      # Precio real en USD
         
-        if amount_value is None:
-            return jsonify({"error": "Monto no especificado"}), 400
+        if option_value is None or real_price is None:
+            return jsonify({"error": "Datos de recarga incompletos"}), 400
             
-        amount = float(amount_value)
+        option_value = int(option_value)
+        real_price = float(real_price)
         
-        if amount <= 0:
-            return jsonify({"error": "Monto inválido"}), 400
+        if option_value < 1 or option_value > 9:
+            return jsonify({"error": "Opción de recarga inválida"}), 400
+            
+        if real_price <= 0:
+            return jsonify({"error": "Precio inválido"}), 400
         
-        # Verificar saldo del usuario
+        # Verificar saldo del usuario (solo para usuarios normales, admin puede comprar sin saldo)
         current_balance = float(db.get_user_balance(user_id))
-        if current_balance < amount:
+        if user_id != 'ADMIN001' and current_balance < real_price:
             return jsonify({
-                "error": f"Saldo insuficiente. Tu saldo actual es ${current_balance:.2f} y necesitas ${amount:.2f}. Recarga tu cuenta primero."
+                "error": f"Saldo insuficiente. Tu saldo actual es ${current_balance:.2f} y necesitas ${real_price:.2f}. Recarga tu cuenta primero."
             }), 400
         
         # PASO 1: Buscar un PIN disponible del valor exacto en la base de datos local
-        available_pin = db.get_available_pin_by_value(amount)
+        available_pin = db.get_available_pin_by_value(option_value)
         
         pin_from_provider = None
         
         # PASO 2: Si no hay PINs locales, consultar al proveedor de la API (solo para Free Fire Latam)
         if not available_pin:
-            print(f"No hay PINs locales disponibles de ${amount}. Consultando proveedor de la API...")
+            print(f"No hay PINs locales disponibles de opción {option_value} (${real_price}). Consultando proveedor de la API...")
             
-            # Convertir el monto a valor entero para la API del proveedor (1-9)
-            amount_value = int(amount)
-            if amount_value < 1 or amount_value > 9:
-                return jsonify({
-                    "error": f"Monto ${amount} no válido para el proveedor. Debe ser entre $1 y $9."
-                }), 400
-            
-            # Obtener PIN del proveedor de la API
-            pin_from_provider = db.get_pin_from_provider(amount_value)
+            # Obtener PIN del proveedor de la API usando el valor de opción (1-9)
+            pin_from_provider = db.get_pin_from_provider(option_value)
             
             if not pin_from_provider:
                 return jsonify({
-                    "error": f"No hay PINés disponibles de ${amount}. No se pudo obtener PIN del proveedor. Contacta al administrador."
+                    "error": f"No hay PINés disponibles de ${real_price}. No se pudo obtener PIN del proveedor. Contacta al administrador."
                 }), 400
         
-        # Descontar el monto del saldo del usuario
-        new_balance = current_balance - amount
-        balance_updated = db.update_user_balance(user_id, new_balance)
+        # Descontar el precio real del saldo del usuario (solo para usuarios normales)
+        if user_id != 'ADMIN001':
+            new_balance = current_balance - real_price
+            balance_updated = db.update_user_balance(user_id, new_balance)
+        else:
+            new_balance = current_balance
+            balance_updated = True
         
         if balance_updated is None:
             return jsonify({"error": "Error al actualizar el saldo"}), 500
@@ -354,14 +356,14 @@ def validate_recharge():
                     user_id=user_id,
                     pin=available_pin['pin_code'],
                     transaction_id=transaction_id,
-                    amount=-amount
+                    amount=-real_price
                 )
                 
                 return jsonify({
                     "success": True,
                     "pin": available_pin['pin_code'],
                     "transaction_id": transaction_id,
-                    "amount": amount,
+                    "amount": real_price,
                     "new_balance": f"{new_balance:.2f}",
                     "source": "local"
                 })
@@ -377,14 +379,14 @@ def validate_recharge():
                 user_id=user_id,
                 pin=pin_from_provider['pin_code'],
                 transaction_id=transaction_id,
-                amount=-amount
+                amount=-real_price
             )
             
             return jsonify({
                 "success": True,
                 "pin": pin_from_provider['pin_code'],
                 "transaction_id": transaction_id,
-                "amount": amount,
+                "amount": real_price,
                 "new_balance": f"{new_balance:.2f}",
                 "source": "provider_api"
             })

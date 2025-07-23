@@ -106,6 +106,19 @@
   </div>
 
   <script>
+    // Mapeo correcto de valores a precios reales
+    const priceMapping = {
+      '1': 0.66,  // 110 💎
+      '2': 1.99,  // 341 💎  
+      '3': 3.35,  // 572 💎
+      '4': 6.70,  // 1.166 💎
+      '5': 12.70, // 2.376 💎
+      '6': 29.50, // 6.138 💎
+      '7': 0.40,  // Tarjeta básica
+      '8': 1.40,  // Tarjeta semanal
+      '9': 6.50   // Tarjeta mensual
+    };
+
     async function handleRecharge(event) {
       event.preventDefault();
 
@@ -118,7 +131,8 @@
         return;
       }
 
-      const amount = parseFloat(select.value);
+      const optionValue = select.value; // Valor 1-9
+      const realPrice = priceMapping[optionValue]; // Precio real en USD
       
       showMessage('Procesando recarga...', 'info');
 
@@ -127,7 +141,8 @@
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({
-            amount: amount
+            option_value: parseInt(optionValue), // Valor 1-9 para la API del proveedor
+            real_price: realPrice // Precio real en USD para descontar del saldo
           })
         });
 
@@ -157,7 +172,7 @@
                 </button>
               </p>
               <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>🆔 ID Transacción:</strong> ${data.transaction_id}</p>
-              <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>💰 Costo:</strong> $${amount}</p>
+              <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>💰 Costo:</strong> $${realPrice}</p>
               <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>👤 Usuario:</strong> {{ session.get('nombre', '') }} {{ session.get('apellido', '') }}</p>
               <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>📅 Fecha y Hora:</strong> ${fechaHora}</p>
               <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>🔄 Origen:</strong> ${data.source === 'provider_api' ? 'Proveedor API' : 'Base de datos local'}</p>
