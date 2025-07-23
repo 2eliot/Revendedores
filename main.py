@@ -310,6 +310,17 @@ def freefire_latam_validate_recharge():
         if option_value < 1 or option_value > 9:
             return jsonify({"error": "Opción de Free Fire Latam inválida"}), 400
 
+        # Obtener precio real desde configuración dinámica
+        current_prices = load_game_prices()
+        expected_price = current_prices.get('freefire_latam', {}).get(str(option_value))
+        
+        if expected_price is None:
+            return jsonify({"error": "Precio no configurado para esta opción"}), 400
+            
+        # Verificar que el precio enviado coincida con el configurado
+        if abs(real_price - expected_price) > 0.01:
+            return jsonify({"error": "Precio no coincide con la configuración actual"}), 400
+
         if real_price <= 0:
             return jsonify({"error": "Precio inválido"}), 400
 
@@ -440,6 +451,17 @@ def block_striker_validate_recharge():
         # Validación específica para Block Striker (1-9)
         if option_value < 1 or option_value > 9:
             return jsonify({"error": "Opción de Block Striker inválida"}), 400
+
+        # Obtener precio real desde configuración dinámica
+        current_prices = load_game_prices()
+        expected_price = current_prices.get('block_striker', {}).get(str(option_value))
+        
+        if expected_price is None:
+            return jsonify({"error": "Precio no configurado para esta opción"}), 400
+            
+        # Verificar que el precio enviado coincida con el configurado
+        if abs(real_price - expected_price) > 0.01:
+            return jsonify({"error": "Precio no coincide con la configuración actual"}), 400
 
         if real_price <= 0:
             return jsonify({"error": "Precio inválido"}), 400
@@ -670,6 +692,86 @@ def get_banner_message():
     except FileNotFoundError:
         # Mensaje por defecto si no existe el archivo
         return "🚨 IMPORTANTE: GameFan temporalmente fuera de servicio - No comprar PINs hasta nuevo aviso 🚨 Recargas de Block Striker requieren aprobación manual 🚨 Soporte disponible 24/7 para consultas 🚨"
+
+def load_game_prices():
+    """Cargar precios de los juegos desde archivo"""
+    try:
+        import json
+        with open('game_prices.json', 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        # Precios por defecto
+        return {
+            "freefire_latam": {
+                "1": 0.66, "2": 1.99, "3": 3.35, "4": 6.70, "5": 12.70,
+                "6": 29.50, "7": 0.40, "8": 1.40, "9": 6.50
+            },
+            "block_striker": {
+                "1": 0.82, "2": 2.60, "3": 4.30, "4": 8.65, "5": 17.30,
+                "6": 43.15, "7": 3.50, "8": 8.00, "9": 1.85
+            }
+        }
+
+def save_game_prices(prices):
+    """Guardar precios de los juegos en archivo"""
+    try:
+        import json
+        with open('game_prices.json', 'w', encoding='utf-8') as f:
+            json.dump(prices, f, indent=2)
+        return True
+    except Exception as e:
+        print(f"Error guardando precios: {e}")
+        return False
+
+@app.route('/admin/get-game-prices')
+@admin_required
+def get_game_prices():
+    """Obtener precios actuales de los juegos"""
+    try:
+        prices = load_game_prices()
+        return jsonify({"success": True, "prices": prices})
+    except Exception as e:
+        return jsonify({"error": f"Error cargando precios: {str(e)}"}), 500
+
+@app.route('/admin/update-game-prices', methods=['POST'])
+@admin_required
+def update_game_prices():
+    """Actualizar precios de un juego específico"""
+    try:
+        data = request.get_json()
+        game_type = data.get('game_type')
+        new_prices = data.get('prices')
+
+        if not game_type or not new_prices:
+            return jsonify({"error": "Tipo de juego y precios son requeridos"}), 400
+
+        if game_type not in ['freefire_latam', 'block_striker']:
+            return jsonify({"error": "Tipo de juego inválido"}), 400
+
+        # Validar que todos los precios sean números positivos
+        for key, price in new_prices.items():
+            if not isinstance(price, (int, float)) or price < 0:
+                return jsonify({"error": f"Precio inválido para opción {key}"}), 400
+
+        # Cargar precios actuales
+        current_prices = load_game_prices()
+        
+        # Actualizar precios del juego específico
+        current_prices[game_type] = {}
+        for key, price in new_prices.items():
+            current_prices[game_type][str(key)] = float(price)
+
+        # Guardar precios actualizados
+        if save_game_prices(current_prices):
+            return jsonify({
+                "success": True, 
+                "message": f"Precios de {game_type} actualizados exitosamente"
+            })
+        else:
+            return jsonify({"error": "Error guardando precios"}), 500
+
+    except Exception as e:
+        return jsonify({"error": f"Error actualizando precios: {str(e)}"}), 500
 
 # Las credenciales del admin se leen directamente de las variables de entorno
 admin_user = os.getenv('ADMIN_USER', 'admin')

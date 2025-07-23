@@ -50,6 +50,7 @@
       <div class="tab-buttons">
         <button class="tab-button active" onclick="showTab('users')">👥 Usuarios</button>
         <button class="tab-button" onclick="showTab('pins')">📌 Agregar PINés</button>
+        <button class="tab-button" onclick="showTab('precios')">💰 Precios</button>
       </div>
 
       <!-- Pestaña de Usuarios -->
@@ -57,7 +58,7 @@
         <div class="users-section">
           <h2>Gestión de Usuarios</h2>
           <button onclick="refreshUsers()" class="btn-refresh">🔄 Actualizar</button>
-          
+
           <div class="table-mobile-hint">
             📱 En móvil: desliza la tabla horizontalmente para ver todas las columnas
           </div>
@@ -172,6 +173,14 @@
               {% endif %}
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Pestaña de Precios -->
+      <div id="precios-tab" class="tab-content">
+        <div class="precios-section">
+          <h2>Gestión de Precios</h2>
+          <p>Aquí podrás actualizar los precios de los paquetes de juegos.</p>
         </div>
       </div>
     </div>
