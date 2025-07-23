@@ -137,7 +137,7 @@
       showMessage('Procesando recarga...', 'info');
 
       try {
-        const response = await fetch('/validate-recharge', {
+        const response = await fetch('/freefire-latam/validate-recharge', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({

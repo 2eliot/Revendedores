@@ -281,9 +281,10 @@ def add_single_pin():
     finally:
         db.disconnect()
 
-@app.route('/validate-recharge', methods=['POST'])
+@app.route('/freefire-latam/validate-recharge', methods=['POST'])
 @login_required
-def validate_recharge():
+def freefire_latam_validate_recharge():
+    """ENDPOINT EXCLUSIVO para Free Fire Latam - NO reutilizar"""
     db = Database()
     if not db.connect():
         return jsonify({"error": "Error de conexión a la base de datos"}), 500
@@ -294,7 +295,7 @@ def validate_recharge():
             return jsonify({"error": "Datos de solicitud inválidos"}), 400
             
         user_id = session['user_id']
-        option_value = data.get('option_value')  # Valor 1-9 para la API
+        option_value = data.get('option_value')  # Valor 1-9 específico de Free Fire Latam
         real_price = data.get('real_price')      # Precio real en USD
         
         if option_value is None or real_price is None:
@@ -303,37 +304,34 @@ def validate_recharge():
         option_value = int(option_value)
         real_price = float(real_price)
         
+        # Validación específica para Free Fire Latam (1-9)
         if option_value < 1 or option_value > 9:
-            return jsonify({"error": "Opción de recarga inválida"}), 400
+            return jsonify({"error": "Opción de Free Fire Latam inválida"}), 400
             
         if real_price <= 0:
             return jsonify({"error": "Precio inválido"}), 400
         
-        # Verificar saldo del usuario (solo para usuarios normales, admin puede comprar sin saldo)
+        # Verificar saldo del usuario
         current_balance = float(db.get_user_balance(user_id))
         if user_id != 'ADMIN001' and current_balance < real_price:
             return jsonify({
                 "error": f"Saldo insuficiente. Tu saldo actual es ${current_balance:.2f} y necesitas ${real_price:.2f}. Recarga tu cuenta primero."
             }), 400
         
-        # PASO 1: Buscar un PIN disponible del valor exacto en la base de datos local
+        # PASO 1: Buscar PIN local específico para Free Fire Latam
         available_pin = db.get_available_pin_by_value(option_value)
         
-        pin_from_provider = None
-        
-        # PASO 2: Si no hay PINs locales, consultar al proveedor de la API (solo para Free Fire Latam)
+        # PASO 2: Si no hay PINs locales, usar proveedor específico de Free Fire Latam
         if not available_pin:
-            print(f"No hay PINs locales disponibles de opción {option_value} (${real_price}). Consultando proveedor de la API...")
-            
-            # Obtener PIN del proveedor de la API usando el valor de opción (1-9)
-            pin_from_provider = db.get_pin_from_provider(option_value)
+            print(f"[FREEFIRE LATAM] No hay PINs locales de opción {option_value} (${real_price})")
+            pin_from_provider = db.get_freefire_latam_pin(option_value)
             
             if not pin_from_provider:
                 return jsonify({
-                    "error": f"No hay PINés disponibles de ${real_price}. No se pudo obtener PIN del proveedor. Contacta al administrador."
+                    "error": f"No hay PINés de Free Fire Latam disponibles de ${real_price}. Contacta al administrador."
                 }), 400
         
-        # Descontar el precio real del saldo del usuario (solo para usuarios normales)
+        # Descontar saldo
         if user_id != 'ADMIN001':
             new_balance = current_balance - real_price
             balance_updated = db.update_user_balance(user_id, new_balance)
@@ -344,20 +342,13 @@ def validate_recharge():
         if balance_updated is None:
             return jsonify({"error": "Error al actualizar el saldo"}), 500
         
-        # Procesar según el origen del PIN
+        # Procesar según origen del PIN
         if available_pin:
-            # PIN local - marcar como usado
+            # PIN local de Free Fire Latam
             used_pin = db.use_pin(available_pin['id'], user_id)
-            
             if used_pin:
-                # Registrar la transacción
-                transaction_id = f"FF-{user_id}-{int(__import__('time').time())}"
-                db.insert_transaction(
-                    user_id=user_id,
-                    pin=available_pin['pin_code'],
-                    transaction_id=transaction_id,
-                    amount=-real_price
-                )
+                transaction_id = f"FFLATAM-LOCAL-{user_id}-{int(__import__('time').time())}"
+                db.insert_transaction(user_id, available_pin['pin_code'], transaction_id, -real_price)
                 
                 return jsonify({
                     "success": True,
@@ -365,22 +356,16 @@ def validate_recharge():
                     "transaction_id": transaction_id,
                     "amount": real_price,
                     "new_balance": f"{new_balance:.2f}",
-                    "source": "local"
+                    "source": "freefire_latam_local"
                 })
             else:
-                # Si falla el uso del PIN, revertir el saldo
                 db.update_user_balance(user_id, current_balance)
-                return jsonify({"error": "Error al procesar la recarga"}), 500
+                return jsonify({"error": "Error al procesar PIN local"}), 500
                 
         elif pin_from_provider:
-            # PIN del proveedor - entregar directamente
-            transaction_id = f"FF-PROVIDER-{user_id}-{int(__import__('time').time())}"
-            db.insert_transaction(
-                user_id=user_id,
-                pin=pin_from_provider['pin_code'],
-                transaction_id=transaction_id,
-                amount=-real_price
-            )
+            # PIN del proveedor específico de Free Fire Latam
+            transaction_id = f"FFLATAM-API-{user_id}-{int(__import__('time').time())}"
+            db.insert_transaction(user_id, pin_from_provider['pin_code'], transaction_id, -real_price)
             
             return jsonify({
                 "success": True,
@@ -388,16 +373,27 @@ def validate_recharge():
                 "transaction_id": transaction_id,
                 "amount": real_price,
                 "new_balance": f"{new_balance:.2f}",
-                "source": "provider_api"
+                "source": "freefire_latam_api"
             })
         
         else:
-            # Si llegamos aquí, algo salió mal
             db.update_user_balance(user_id, current_balance)
-            return jsonify({"error": "Error inesperado al procesar la recarga"}), 500
+            return jsonify({"error": "Error inesperado en Free Fire Latam"}), 500
 
     finally:
         db.disconnect()
+
+@app.route('/freefire-global/validate-recharge', methods=['POST'])
+@login_required
+def freefire_global_validate_recharge():
+    """ENDPOINT EXCLUSIVO para Free Fire Global - Completamente independiente"""
+    return jsonify({"error": "Free Fire Global no implementado aún"}), 501
+
+@app.route('/block-striker/validate-recharge', methods=['POST'])
+@login_required
+def block_striker_validate_recharge():
+    """ENDPOINT EXCLUSIVO para Block Striker - Completamente independiente"""
+    return jsonify({"error": "Block Striker no implementado aún"}), 501
 
 @app.route('/admin/users')
 @admin_required

@@ -267,140 +267,105 @@ class Database:
         result = self.execute_query(query, (pin_code,))
         return result[0] if result else None
 
-    def get_pin_from_provider(self, amount_value):
-        """Obtener PIN del proveedor API para Free Fire Latam"""
+    def get_freefire_latam_pin(self, amount_value):
+        """FUNCIÓN EXCLUSIVA para Free Fire Latam - NO reutilizar para otros juegos"""
         import requests
         import os
 
-        # Obtener credenciales del proveedor desde secretos
-        provider_user = os.getenv('PROVIDER_USER')
-        provider_password = os.getenv('PROVIDER_PASSWORD')
-
-        if not provider_user or not provider_password:
-            print("Error: Credenciales del proveedor no configuradas")
-            return None
-
-        # URL de la API del proveedor
+        # Credenciales específicas para Free Fire Latam
+        provider_user = os.getenv('FREEFIRE_LATAM_USER', 'inefableshop')
+        provider_password = os.getenv('FREEFIRE_LATAM_PASSWORD', '321Naruto%')
         api_url = "https://inefableshop.net/conexion_api/api.php"
 
-        # Validar que el valor esté en el rango correcto (1-9)
-        if amount_value < 1 or amount_value > 9:
-            print(f"Valor {amount_value} no válido. Debe estar entre 1 y 9")
+        if not provider_user or not provider_password:
+            print("[FREEFIRE LATAM] Error: Credenciales no configuradas")
             return None
 
-        # Parámetros para la solicitud
+        # Validar valores específicos de Free Fire Latam (1-9)
+        if amount_value < 1 or amount_value > 9:
+            print(f"[FREEFIRE LATAM] Valor {amount_value} inválido. Debe estar entre 1-9")
+            return None
+
+        # Parámetros específicos para Free Fire Latam
         params = {
             'action': 'recarga',
             'usuario': provider_user,
             'clave': provider_password,
-            'tipo': 'recargaPinFreefirebs',  # Tipo fijo para Free Fire Latam
-            'monto': str(amount_value),      # Monto del 1 al 9 según el paquete
+            'tipo': 'recargaPinFreefirebs',  # Tipo específico para Free Fire Latam
+            'monto': str(amount_value),
             'numero': '0'
         }
 
         try:
-            # Realizar solicitud a la API del proveedor
-            print(f"Consultando API del proveedor con parámetros: {params}")
+            print(f"[FREEFIRE LATAM] Consultando API con parámetros: {params}")
             response = requests.get(api_url, params=params, timeout=30)
             response.raise_for_status()
-
-            # La respuesta puede ser JSON o texto plano
             response_data = response.text.strip()
-            print(f"Respuesta completa de la API: {response_data}")
+            print(f"[FREEFIRE LATAM] Respuesta: {response_data}")
 
-            # Intentar parsear como JSON primero
+            # Procesamiento específico para Free Fire Latam
             try:
                 import json
                 json_response = json.loads(response_data)
-
-                # Verificar si la respuesta JSON indica éxito (tanto 'ALERTA' como 'alerta')
-                alert_status = json_response.get('ALERTA') or json_response.get('alerta', '').upper()
-                pin_code = json_response.get('PIN') or json_response.get('pin')
-
-                # Si pin es null pero hay mensaje, extraer PIN del mensaje
-                if not pin_code and 'mensaje' in json_response:
-                    mensaje = json_response['mensaje']
-                    # Buscar el PIN en el mensaje usando regex
-                    import re
-                    pin_match = re.search(r'<b>Pin:<\/b>\s*([A-Z0-9]+)', mensaje)
-                    if pin_match:
-                        pin_code = pin_match.group(1).strip()
-                        print(f"PIN extraído del mensaje: {pin_code}")
-
-                if (alert_status == 'VERDE' or alert_status == 'GREEN') and pin_code:
-                    pin_code = pin_code.upper().strip()
-
-                    # Validar que el PIN tenga un formato válido
-                    if len(pin_code) >= 4 and len(pin_code) <= 20:
-                        return {
-                            'pin_code': pin_code,
-                            'value': amount_value,
-                            'source': 'provider_api'
-                        }
-                    else:
-                        print(f"PIN recibido del proveedor tiene formato inválido: {pin_code}")
-                        return None
-                else:
-                    # La API devolvió un error
-                    error_msg = json_response.get('MENSAJE', 'Error desconocido')
-                    print(f"Error de la API del proveedor: {error_msg}")
-                    return None
-
+                return self._process_freefire_latam_response(json_response, amount_value)
             except json.JSONDecodeError:
-                # Si no es JSON válido, intentar extraer JSON después de los warnings de PHP
-                try:
-                    # Buscar donde empieza el JSON válido después de los warnings
-                    json_start = response_data.find('{')
-                    if json_start != -1:
-                        json_part = response_data[json_start:]
-                        json_response = json.loads(json_part)
-                        
-                        # Procesar igual que arriba
-                        alert_status = json_response.get('ALERTA') or json_response.get('alerta', '').upper()
-                        pin_code = json_response.get('PIN') or json_response.get('pin')
+                return self._process_freefire_latam_warnings_response(response_data, amount_value)
 
-                        # Si pin es null pero hay mensaje, extraer PIN del mensaje
-                        if not pin_code and 'mensaje' in json_response:
-                            mensaje = json_response['mensaje']
-                            # Buscar el PIN en el mensaje usando regex
-                            import re
-                            pin_match = re.search(r'<b>Pin:<\/b>\s*([A-Z0-9]+)', mensaje)
-                            if pin_match:
-                                pin_code = pin_match.group(1).strip()
-                                print(f"PIN extraído del mensaje después de warnings: {pin_code}")
-
-                        if (alert_status == 'VERDE' or alert_status == 'GREEN') and pin_code:
-                            pin_code = pin_code.upper().strip()
-
-                            # Validar que el PIN tenga un formato válido
-                            if len(pin_code) >= 4 and len(pin_code) <= 20:
-                                return {
-                                    'pin_code': pin_code,
-                                    'value': amount_value,
-                                    'source': 'provider_api'
-                                }
-                            else:
-                                print(f"PIN recibido del proveedor tiene formato inválido: {pin_code}")
-                                return None
-                        else:
-                            error_msg = json_response.get('MENSAJE', 'Error desconocido')
-                            print(f"Error de la API del proveedor después de warnings: {error_msg}")
-                            return None
-                            
-                    else:
-                        print(f"No se pudo encontrar JSON válido en la respuesta: {response_data}")
-                        return None
-                        
-                except json.JSONDecodeError:
-                    print(f"Error al parsear JSON después de limpiar warnings: {response_data}")
-                    return None
-
-        except requests.exceptions.RequestException as e:
-            print(f"Error al conectar con el proveedor de PINs: {e}")
-            return None
         except Exception as e:
-            print(f"Error inesperado al obtener PIN del proveedor: {e}")
+            print(f"[FREEFIRE LATAM] Error: {e}")
             return None
+
+    def _process_freefire_latam_response(self, json_response, amount_value):
+        """Procesar respuesta JSON específica de Free Fire Latam"""
+        alert_status = json_response.get('ALERTA') or json_response.get('alerta', '').upper()
+        pin_code = json_response.get('PIN') or json_response.get('pin')
+
+        # Extraer PIN del mensaje si es necesario
+        if not pin_code and 'mensaje' in json_response:
+            import re
+            pin_match = re.search(r'<b>Pin:<\/b>\s*([A-Z0-9]+)', json_response['mensaje'])
+            if pin_match:
+                pin_code = pin_match.group(1).strip()
+
+        if (alert_status == 'VERDE' or alert_status == 'GREEN') and pin_code:
+            pin_code = pin_code.upper().strip()
+            if 4 <= len(pin_code) <= 20:
+                return {
+                    'pin_code': pin_code,
+                    'value': amount_value,
+                    'source': 'freefire_latam_api'
+                }
+
+        error_msg = json_response.get('MENSAJE', 'Error desconocido')
+        print(f"[FREEFIRE LATAM] Error de API: {error_msg}")
+        return None
+
+    def _process_freefire_latam_warnings_response(self, response_data, amount_value):
+        """Procesar respuesta con warnings PHP específica de Free Fire Latam"""
+        try:
+            import json
+            json_start = response_data.find('{')
+            if json_start != -1:
+                json_part = response_data[json_start:]
+                json_response = json.loads(json_part)
+                return self._process_freefire_latam_response(json_response, amount_value)
+        except:
+            pass
+        
+        print(f"[FREEFIRE LATAM] No se pudo procesar respuesta: {response_data}")
+        return None
+
+    def get_freefire_global_pin(self, amount_value):
+        """FUNCIÓN EXCLUSIVA para Free Fire Global - Completamente independiente"""
+        # TODO: Implementar cuando se configure Free Fire Global
+        print(f"[FREEFIRE GLOBAL] Función no implementada aún")
+        return None
+
+    def get_block_striker_pin(self, amount_value):
+        """FUNCIÓN EXCLUSIVA para Block Striker - Completamente independiente"""
+        # TODO: Implementar cuando se configure Block Striker
+        print(f"[BLOCK STRIKER] Función no implementada aún")
+        return None
 
     def cleanup_old_transactions(self, user_id, max_transactions=30):
         """Eliminar transacciones antiguas si el usuario tiene más del máximo permitido"""
