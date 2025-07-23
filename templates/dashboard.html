@@ -37,7 +37,12 @@
           </div>
           <div class="wallet-credits">
             <h4>💰 Créditos Recibidos</h4>
-            {% set credit_transactions = transactions|selectattr('pin', 'equalto', 'ADMIN')|selectattr('transaction_id', 'search', 'CREDIT')|list %}
+            {% set credit_transactions = [] %}
+            {% for transaction in transactions %}
+              {% if transaction.pin == 'ADMIN' and 'CREDIT' in transaction.transaction_id %}
+                {% set _ = credit_transactions.append(transaction) %}
+              {% endif %}
+            {% endfor %}
             {% if credit_transactions %}
               {% for transaction in credit_transactions[:5] %}
               <div class="credit-item">
