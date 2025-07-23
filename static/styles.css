@@ -22,12 +22,22 @@ body {
 .hamburger {
   position: relative;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
 }
 .hamburger .icon {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   stroke: #fff;
   fill: none;
+}
+.hamburger:hover {
+  background-color: rgba(255,255,255,0.1);
 }
 
 /* Menú de juegos desplegable */
@@ -70,20 +80,36 @@ body {
 /* Íconos del header a la derecha */
 .icon-container {
   display: flex;
-  gap: 1.5rem;
+  gap: 1.2rem;
   align-items: center;
   position: relative;
   margin-left: auto;
+  padding-right: 0.5rem;
 }
 .icon {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   fill: #ffffff;
   transition: transform 0.2s ease;
+  cursor: pointer;
 }
 .icon:hover {
-  transform: scale(1.2);
-  cursor: pointer;
+  transform: scale(1.1);
+}
+
+/* Contenedores de iconos uniformes */
+.hamburger, .user-icon, .wallet-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+}
+
+.hamburger:hover, .user-icon:hover, .wallet-icon:hover {
+  background-color: rgba(255,255,255,0.1);
 }
 
 /* Caja de usuario */
