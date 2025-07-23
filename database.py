@@ -42,7 +42,13 @@ class Database:
         try:
             self.cursor.execute(query, params)
             self.connection.commit()
-            return self.cursor.fetchall()
+            
+            # Solo hacer fetchall() si hay resultados para obtener
+            if self.cursor.description is not None:
+                return self.cursor.fetchall()
+            else:
+                # Para queries como UPDATE, INSERT, DELETE sin RETURNING
+                return []
         except Exception as e:
             self.connection.rollback()
             print(f"Error ejecutando query: {e}")
@@ -143,6 +149,7 @@ class Database:
         UPDATE users 
         SET balance = balance + %s 
         WHERE user_id = %s
+        RETURNING balance
         """
         result = self.execute_query(query, (amount, user_id))
-        return result is not None
+        return result is not None and len(result) > 0
