@@ -1,8 +1,19 @@
 body {
   font-family: 'Inter', sans-serif;
   background-color: #f8f9fa;
-  padding: 2rem;
+  margin: 0;
+  padding: 0;
   text-align: center;
+}
+
+/* Espaciado para el contenido después del header */
+.header + .user-panel + .juego-container {
+  margin-top: 1rem;
+}
+
+/* Ajustar el contenedor principal para que tenga padding cuando necesario */
+body > .juego-container {
+  margin: 2rem auto;
 }
 
 .juego-container {

@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -5,9 +6,66 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Free Fire Latam - Recarga</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='freefirelatam.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+
+  <!-- Header con hamburguesa y menú de juegos -->
+  <header class="header">
+    <div class="hamburger" onclick="toggleMenu()">
+      <svg class="icon" viewBox="0 0 24 24">
+        <path d="M3 6h18M3 12h18M3 18h18" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <div id="menu-juegos" class="menu-juegos">
+        <p class="menu-title">🎮 Juegos</p>
+        <ul>
+          <li><a href="/freefirelatam">Free Fire Latam</a></li>
+          <li><a href="#">Free Fire</a></li>
+          <li><a href="#">Block Striker</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="icon-container">
+      <a href="/dashboard">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M3 10L12 2l9 8v10a1 1 0 01-1 1h-6v-6H10v6H4a1 1 0 01-1-1V10z"/></svg>
+      </a>
+      <div class="wallet-icon" onclick="toggleWalletBox()">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M19 7h-3V5a2 2 0 00-2-2H10a2 2 0 00-2 2v2H5a2 2 0 00-2 2v8a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2zm-8-2h2v2h-2V5zm5 8h-3a1 1 0 110-2h3v2z"/></svg>
+        <div id="wallet-box" class="wallet-box">
+          <h3>💰 Mi Cartera</h3>
+          <div class="balance-display">
+            <p><strong>Saldo Actual:</strong></p>
+            <p class="balance-amount">${{ balance }}</p>
+          </div>
+          <div class="wallet-info">
+            <p><strong>ID:</strong> {{ user_id }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="user-icon" onclick="toggleUserBox()">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M12 12a5 5 0 100-10 5 5 0 000 10zm0 2c-4.418 0-8 2.239-8 5v1h16v-1c0-2.761-3.582-5-8-5z"/></svg>
+        <div id="user-box" class="user-box">
+          <p><strong>Nombre:</strong> {{ session.get('nombre', '---') }}</p>
+          <p><strong>Apellido:</strong> {{ session.get('apellido', '---') }}</p>
+          <p><strong>Teléfono:</strong> {{ session.get('telefono', '---') }}</p>
+          <p><strong>Correo:</strong> {{ session.get('email', '---') }}</p>
+          {% if session.get('user_id') == 'ADMIN001' %}
+          <a href="/admin" class="admin-btn">🛡️ Panel Admin</a>
+          {% endif %}
+          <a href="/logout" class="logout-btn">Cerrar sesión</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Panel del usuario -->
+  <section class="user-panel">
+    <p>Mi ID {{ user_id }} &nbsp; | &nbsp; Saldo ${{ balance }}</p>
+  </section>
+
   <div class="juego-container">
     <h1 class="juego-titulo">Free Fire Latam</h1>
 
@@ -62,6 +120,40 @@
       messageDiv.textContent = text;
       messageDiv.className = 'message ' + type;
     }
+
+    function toggleUserBox() {
+      document.getElementById("user-box").classList.toggle("visible");
+    }
+    function toggleMenu() {
+      document.getElementById("menu-juegos").classList.toggle("visible");
+    }
+    function toggleWalletBox() {
+      document.getElementById("wallet-box").classList.toggle("visible");
+    }
+
+    // Cerrar ventanas al hacer clic fuera
+    document.addEventListener('click', function(event) {
+      const userBox = document.getElementById("user-box");
+      const menuJuegos = document.getElementById("menu-juegos");
+      const walletBox = document.getElementById("wallet-box");
+      
+      // Verificar si el clic no fue en los iconos o dentro de las ventanas
+      const isUserIcon = event.target.closest('.user-icon');
+      const isMenuIcon = event.target.closest('.hamburger');
+      const isWalletIcon = event.target.closest('.wallet-icon');
+      
+      if (!isUserIcon && userBox.classList.contains('visible')) {
+        userBox.classList.remove('visible');
+      }
+      
+      if (!isMenuIcon && menuJuegos.classList.contains('visible')) {
+        menuJuegos.classList.remove('visible');
+      }
+      
+      if (!isWalletIcon && walletBox.classList.contains('visible')) {
+        walletBox.classList.remove('visible');
+      }
+    });
   </script>
 </body>
 </html>
