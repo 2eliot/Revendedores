@@ -80,13 +80,22 @@
 
   <!-- Historial -->
   <section class="transactions">
-    <h2 class="transaction-title">Historial de transacciones</h2>
+    <h2 class="transaction-title">
+      {% if session.get('user_id') == 'ADMIN001' %}
+        Historial de transacciones - Todos los usuarios
+      {% else %}
+        Historial de transacciones
+      {% endif %}
+    </h2>
     <ul class="transaction-list">
       {% if transactions %}
         {% for transaction in transactions %}
           {% if transaction.pin != 'ADMIN' or 'CREDIT' not in transaction.transaction_id %}
         <li class="{{ 'admin-transaction' if transaction.pin == 'ADMIN' else '' }}">
           <div><strong>ID:</strong> {{ transaction.id }}</div>
+          {% if session.get('user_id') == 'ADMIN001' %}
+          <div><strong>Usuario:</strong> {{ transaction.user_id }} - {{ transaction.nombre }} {{ transaction.apellido }}</div>
+          {% endif %}
           {% if transaction.pin == 'ADMIN' %}
           <div><strong>Tipo:</strong> 
             {% if 'BALANCE' in transaction.transaction_id %}
@@ -140,20 +149,20 @@
       const userBox = document.getElementById("user-box");
       const menuJuegos = document.getElementById("menu-juegos");
       const walletBox = document.getElementById("wallet-box");
-      
+
       // Verificar si el clic no fue en los iconos o dentro de las ventanas
       const isUserIcon = event.target.closest('.user-icon');
       const isMenuIcon = event.target.closest('.hamburger');
       const isWalletIcon = event.target.closest('.wallet-icon');
-      
+
       if (!isUserIcon && userBox.classList.contains('visible')) {
         userBox.classList.remove('visible');
       }
-      
+
       if (!isMenuIcon && menuJuegos.classList.contains('visible')) {
         menuJuegos.classList.remove('visible');
       }
-      
+
       if (!isWalletIcon && walletBox.classList.contains('visible')) {
         walletBox.classList.remove('visible');
       }

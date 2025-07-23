@@ -68,13 +68,25 @@ class Database:
         return result
 
     def get_user_transactions(self, user_id, limit=10, offset=0):
-        query = """
-        SELECT * FROM transactions 
-        WHERE user_id = %s 
-        ORDER BY created_at DESC 
-        LIMIT %s OFFSET %s
-        """
-        return self.execute_query(query, (user_id, limit, offset))
+        # Si es admin, obtener todas las transacciones de todos los usuarios
+        if user_id == 'ADMIN001':
+            query = """
+            SELECT t.*, u.nombre, u.apellido 
+            FROM transactions t
+            LEFT JOIN users u ON t.user_id = u.user_id
+            ORDER BY t.created_at DESC 
+            LIMIT %s OFFSET %s
+            """
+            return self.execute_query(query, (limit, offset))
+        else:
+            # Para usuarios normales, solo sus transacciones
+            query = """
+            SELECT * FROM transactions 
+            WHERE user_id = %s 
+            ORDER BY created_at DESC 
+            LIMIT %s OFFSET %s
+            """
+            return self.execute_query(query, (user_id, limit, offset))
 
     def get_user_balance(self, user_id):
         query = "SELECT balance FROM users WHERE user_id = %s"
