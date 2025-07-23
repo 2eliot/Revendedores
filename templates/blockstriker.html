@@ -70,6 +70,9 @@
     <h1 class="juego-titulo">Block Striker</h1>
 
     <form class="juego-form" onsubmit="handleRecharge(event)">
+      <label for="player-id">ID del Jugador</label>
+      <input type="text" id="player-id" placeholder="Ingresa tu ID de jugador" required>
+
       <label for="amount-select">Selecciona el Paquete</label>
       <select id="amount-select" required>
         <option value="">-- Selecciona un paquete --</option>
@@ -121,8 +124,14 @@
     async function handleRecharge(event) {
       event.preventDefault();
 
+      const playerId = document.getElementById('player-id');
       const select = document.getElementById('amount-select');
       const messageDiv = document.getElementById('message');
+
+      if (!playerId.value.trim()) {
+        showMessage('Por favor ingresa tu ID de jugador', 'error');
+        return;
+      }
 
       if (!select.value) {
         showMessage('Por favor selecciona un paquete', 'error');

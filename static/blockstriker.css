@@ -42,6 +42,15 @@ body > .juego-container {
   font-size: 1.1rem;
 }
 
+.juego-form input {
+  padding: 0.5rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
 .juego-form select {
   padding: 0.5rem;
   font-size: 1rem;
@@ -124,25 +133,4 @@ body > .juego-container {
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 }
 
-/* Animación de carga */
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-.juego-container:hover {
-  animation: pulse 2s infinite;
-}
-
-/* Efectos especiales para Block Striker */
-.juego-titulo:hover {
-  transform: scale(1.05);
-  transition: transform 0.3s ease;
-}
+/* Sin animaciones para mantener simplicidad */
