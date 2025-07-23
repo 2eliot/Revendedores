@@ -347,7 +347,7 @@ def freefire_latam_validate_recharge():
             # PIN local de Free Fire Latam
             used_pin = db.use_pin(available_pin['id'], user_id)
             if used_pin:
-                transaction_id = f"FFLATAM-LOCAL-{user_id}-{int(__import__('time').time())}"
+                transaction_id = f"FF{user_id[-3:]}{int(__import__('time').time()) % 10000}"
                 db.insert_transaction(user_id, available_pin['pin_code'], transaction_id, -real_price)
                 
                 return jsonify({
@@ -364,7 +364,7 @@ def freefire_latam_validate_recharge():
                 
         elif pin_from_provider:
             # PIN del proveedor específico de Free Fire Latam
-            transaction_id = f"FFLATAM-API-{user_id}-{int(__import__('time').time())}"
+            transaction_id = f"FF{user_id[-3:]}{int(__import__('time').time()) % 10000}"
             db.insert_transaction(user_id, pin_from_provider['pin_code'], transaction_id, -real_price)
             
             return jsonify({
@@ -463,7 +463,7 @@ def block_striker_validate_recharge():
             return jsonify({"error": "Error al actualizar el saldo"}), 500
         
         # Crear transacción específica para Block Striker sin código
-        transaction_id = f"BLOCKSTRIKER-{user_id}-{int(__import__('time').time())}"
+        transaction_id = f"BS{user_id[-3:]}{int(__import__('time').time()) % 10000}"
         
         # Insertar transacción con información específica de Block Striker (sin código)
         db.insert_block_striker_transaction(

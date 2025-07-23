@@ -107,7 +107,7 @@ class Database:
                 self.insert_transaction(
                     user_id=user_id,
                     pin="ADMIN",
-                    transaction_id=f"BALANCE-{user_id}-{int(__import__('time').time())}",
+                    transaction_id=f"AD{user_id[-3:]}{int(__import__('time').time()) % 10000}",
                     amount=difference
                 )
                 # La limpieza automática ya se ejecuta en insert_transaction
@@ -192,7 +192,7 @@ class Database:
             self.insert_transaction(
                 user_id=user_id,
                 pin="ADMIN",
-                transaction_id=f"CREDIT-{user_id}-{int(__import__('time').time())}",
+                transaction_id=f"CR{user_id[-3:]}{int(__import__('time').time()) % 10000}",
                 amount=amount
             )
             # La limpieza automática ya se ejecuta en insert_transaction
@@ -231,7 +231,7 @@ class Database:
           self.insert_transaction(
                 user_id=user_id,
                 pin="PIN",
-                transaction_id=f"PIN-{user_id}-{int(__import__('time').time())}",
+                transaction_id=f"PN{user_id[-3:]}{int(__import__('time').time()) % 10000}",
                 amount=0
             )
         return result
