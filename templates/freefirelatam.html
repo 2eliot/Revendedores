@@ -162,8 +162,10 @@
 
     function showMessage(text, type) {
       const messageDiv = document.getElementById('message');
-      messageDiv.textContent = text;
-      messageDiv.className = 'message ' + type;
+      if (messageDiv) {
+        messageDiv.textContent = text;
+        messageDiv.className = 'message ' + type;
+      }
     }
 
     function toggleUserBox() {
