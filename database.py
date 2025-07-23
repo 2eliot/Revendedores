@@ -202,22 +202,30 @@ class Database:
     def use_pin(self, pin_id, user_id):
         """Marcar un PIN como usado"""
         query = """
-        UPDATE pins 
-        SET is_used = true, user_id = %s, used_at = NOW()
+        DELETE FROM pins 
         WHERE id = %s AND is_used = false
         RETURNING *
         """
-        return self.execute_query(query, (user_id, pin_id))
+        result = self.execute_query(query, (pin_id,))
+        if result:
+          self.insert_transaction(
+                user_id=user_id,
+                pin="PIN",
+                transaction_id=f"PIN-{user_id}-{int(__import__('time').time())}",
+                amount=0
+            )
+        return result
 
     def get_pins_stats(self):
-        """Obtener estadísticas de PINEs"""
+        """Obtener estadísticas de PINés (solo disponibles ya que los usados se eliminan)"""
         query = """
         SELECT 
             value,
             COUNT(*) as total,
-            COUNT(CASE WHEN is_used = false THEN 1 END) as available,
-            COUNT(CASE WHEN is_used = true THEN 1 END) as used
+            COUNT(*) as available,
+            0 as used
         FROM pins 
+        WHERE is_used = false
         GROUP BY value 
         ORDER BY value ASC
         """
