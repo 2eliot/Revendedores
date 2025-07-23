@@ -389,6 +389,25 @@ def freefire_global_validate_recharge():
     """ENDPOINT EXCLUSIVO para Free Fire Global - Completamente independiente"""
     return jsonify({"error": "Free Fire Global no implementado aún"}), 501
 
+@app.route('/blockstriker')
+@login_required
+def blockstriker():
+    """Página de Block Striker - Independiente de otros juegos"""
+    user_id = session.get('user_id')
+    
+    db = Database()
+    if not db.connect():
+        flash('Error de conexión a la base de datos', 'error')
+        return redirect(url_for('dashboard'))
+    
+    try:
+        balance = db.get_user_balance(user_id)
+        return render_template('blockstriker.html', 
+                             user_id=user_id, 
+                             balance=balance)
+    finally:
+        db.disconnect()
+
 @app.route('/block-striker/validate-recharge', methods=['POST'])
 @login_required
 def block_striker_validate_recharge():
