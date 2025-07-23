@@ -77,8 +77,24 @@ class Database:
         return result[0]['balance'] if result else 0
     
     def update_user_balance(self, user_id, new_balance):
+        # Obtener el saldo actual antes de actualizar
+        current_balance = self.get_user_balance(user_id)
+        
         query = "UPDATE users SET balance = %s WHERE user_id = %s"
-        return self.execute_query(query, (new_balance, user_id))
+        result = self.execute_query(query, (new_balance, user_id))
+        
+        # Registrar la transacción de cambio de saldo
+        if result is not None:
+            difference = float(new_balance) - float(current_balance)
+            if difference != 0:  # Solo registrar si hay cambio
+                self.insert_transaction(
+                    user_id=user_id,
+                    pin="ADMIN",
+                    transaction_id=f"BALANCE-{user_id}-{int(__import__('time').time())}",
+                    amount=difference
+                )
+        
+        return result
     
     def create_user(self, nombre, apellido, telefono, email, password_hash):
         # Obtener el próximo número secuencial
@@ -152,4 +168,14 @@ class Database:
         RETURNING balance
         """
         result = self.execute_query(query, (amount, user_id))
+        
+        # Registrar la transacción de crédito agregado
+        if result is not None and len(result) > 0:
+            self.insert_transaction(
+                user_id=user_id,
+                pin="ADMIN",
+                transaction_id=f"CREDIT-{user_id}-{int(__import__('time').time())}",
+                amount=amount
+            )
+        
         return result is not None and len(result) > 0

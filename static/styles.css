@@ -1,4 +1,3 @@
-
 * {
   margin: 0;
   padding: 0;
@@ -195,10 +194,34 @@ body {
 .page:hover {
   background-color: #eee;
 }
-.page.active {
-  background-color: #333;
-  color: #fff;
-  border-color: #333;
+.pagination .page.active {
+  background-color: #007bff;
+  color: white;
+}
+
+/* ==== TRANSACCIONES ADMINISTRATIVAS ==== */
+.admin-transaction {
+  border-left: 4px solid #28a745;
+  background-color: #f8fff9;
+}
+
+.admin-badge {
+  background-color: #28a745;
+  color: white;
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.positive-amount {
+  color: #28a745;
+  font-weight: bold;
+}
+
+.negative-amount {
+  color: #dc3545;
+  font-weight: bold;
 }
 
 /* ==== PANEL DE ADMINISTRADOR ==== */

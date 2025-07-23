@@ -57,12 +57,28 @@
     <ul class="transaction-list">
       {% if transactions %}
         {% for transaction in transactions %}
-        <li>
+        <li class="{{ 'admin-transaction' if transaction.pin == 'ADMIN' else '' }}">
           <div><strong>ID:</strong> {{ transaction.id }}</div>
+          {% if transaction.pin == 'ADMIN' %}
+          <div><strong>Tipo:</strong> 
+            {% if 'CREDIT' in transaction.transaction_id %}
+              <span class="admin-badge">💰 Crédito Agregado por Admin</span>
+            {% elif 'BALANCE' in transaction.transaction_id %}
+              <span class="admin-badge">✏️ Saldo Modificado por Admin</span>
+            {% else %}
+              <span class="admin-badge">🛡️ Transacción Administrativa</span>
+            {% endif %}
+          </div>
+          {% else %}
           <div><strong>PIN:</strong> {{ transaction.pin }}</div>
+          {% endif %}
           <div><strong>Transacción:</strong> {{ transaction.transaction_id }}</div>
           {% if transaction.amount %}
-          <div><strong>Monto:</strong> ${{ transaction.amount }}</div>
+          <div><strong>Monto:</strong> 
+            <span class="{{ 'positive-amount' if transaction.amount > 0 else 'negative-amount' }}">
+              {{ '+' if transaction.amount > 0 else '' }}${{ transaction.amount }}
+            </span>
+          </div>
           {% endif %}
           <div><strong>Fecha:</strong> {{ transaction.created_at.strftime('%d/%m/%Y %H:%M') }}</div>
         </li>
