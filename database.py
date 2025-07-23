@@ -283,43 +283,103 @@ class Database:
         # URL de la API del proveedor
         api_url = "https://inefableshop.net/conexion_api/api.php"
         
+        # Mapeo correcto de valores locales (1-9) a valores de la API del proveedor
+        provider_amount_mapping = {
+            1: 'FFCH100',    # 110 💎 / $0.66
+            2: 'FFCH300',    # 341 💎 / $1.99  
+            3: 'FFCH500',    # 572 💎 / $3.35
+            4: 'FFCH1000',   # 1.166 💎 / $6.70
+            5: 'FFCH2000',   # 2.376 💎 / $12.70
+            6: 'FFCH5000',   # 6.138 💎 / $29.50
+            7: 'FFMP1',      # Tarjeta básica / $0.40
+            8: 'FFMP7',      # Tarjeta semanal / $1.40
+            9: 'FFMP30'      # Tarjeta mensual / $6.50
+        }
+        
+        # Obtener el valor correcto para la API del proveedor
+        provider_amount = provider_amount_mapping.get(amount_value)
+        
+        if not provider_amount:
+            print(f"Valor {amount_value} no válido para la API del proveedor")
+            return None
+        
         # Parámetros para la solicitud
         params = {
             'action': 'recarga',
             'usuario': provider_user,
             'clave': provider_password,
             'tipo': 'recargaPinFreefire',
-            'monto': str(amount_value),
+            'monto': provider_amount,
             'numero': '0'
         }
         
         try:
             # Realizar solicitud a la API del proveedor
+            print(f"Consultando API del proveedor con parámetros: {params}")
             response = requests.get(api_url, params=params, timeout=30)
             response.raise_for_status()
             
-            # La respuesta debería contener el PIN
+            # La respuesta puede ser JSON o texto plano
             response_data = response.text.strip()
+            print(f"Respuesta completa de la API: {response_data}")
             
-            # Verificar si la respuesta contiene un PIN válido
-            if response_data and len(response_data) >= 4:
-                # Extraer el PIN de la respuesta
-                # Asumiendo que la respuesta es directamente el PIN o contiene el PIN
-                pin_code = response_data.upper().strip()
+            # Intentar parsear como JSON primero
+            try:
+                import json
+                json_response = json.loads(response_data)
                 
-                # Validar que el PIN tenga un formato válido
-                if len(pin_code) >= 4 and len(pin_code) <= 20:
-                    return {
-                        'pin_code': pin_code,
-                        'value': amount_value,
-                        'source': 'provider_api'
-                    }
+                # Verificar si la respuesta JSON indica éxito
+                if json_response.get('ALERTA') == 'VERDE' and json_response.get('PIN'):
+                    pin_code = json_response['PIN'].upper().strip()
+                    
+                    # Validar que el PIN tenga un formato válido
+                    if len(pin_code) >= 4 and len(pin_code) <= 20:
+                        return {
+                            'pin_code': pin_code,
+                            'value': amount_value,
+                            'source': 'provider_api'
+                        }
+                    else:
+                        print(f"PIN recibido del proveedor tiene formato inválido: {pin_code}")
+                        return None
                 else:
-                    print(f"PIN recibido del proveedor tiene formato inválido: {pin_code}")
+                    # La API devolvió un error
+                    error_msg = json_response.get('MENSAJE', 'Error desconocido')
+                    print(f"Error de la API del proveedor: {error_msg}")
                     return None
-            else:
-                print(f"Respuesta inválida del proveedor: {response_data}")
-                return None
+                    
+            except json.JSONDecodeError:
+                # Si no es JSON, asumir que es un PIN en texto plano
+                # Limpiar la respuesta de posibles etiquetas HTML
+                clean_response = response_data
+                
+                # Remover advertencias de PHP si existen
+                if '<BR />' in clean_response or '<B>WARNING</B>' in clean_response:
+                    # Buscar el PIN después de las advertencias
+                    lines = clean_response.split('\n')
+                    for line in lines:
+                        line = line.strip()
+                        if line and not line.startswith('<') and len(line) >= 4 and len(line) <= 20:
+                            pin_code = line.upper().strip()
+                            return {
+                                'pin_code': pin_code,
+                                'value': amount_value,
+                                'source': 'provider_api'
+                            }
+                    print(f"No se pudo extraer PIN válido de la respuesta: {clean_response}")
+                    return None
+                else:
+                    # Respuesta en texto plano limpia
+                    if len(clean_response) >= 4 and len(clean_response) <= 20:
+                        pin_code = clean_response.upper().strip()
+                        return {
+                            'pin_code': pin_code,
+                            'value': amount_value,
+                            'source': 'provider_api'
+                        }
+                    else:
+                        print(f"Respuesta inválida del proveedor: {clean_response}")
+                        return None
                 
         except requests.exceptions.RequestException as e:
             print(f"Error al conectar con el proveedor de PINs: {e}")
