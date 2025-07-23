@@ -139,7 +139,7 @@
               <p style="margin: 0.5rem 0; font-size: 1.1rem; display: flex; align-items: center; gap: 10px;">
                 <strong>🔖 PIN:</strong> 
                 <span id="pin-value">${data.pin}</span>
-                <button onclick="copyPin('${data.pin}')" style="padding: 5px 10px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem;">
+                <button onclick="copyPin('${data.pin}', this)" style="padding: 5px 10px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem;">
                   📋 Copiar PIN
                 </button>
               </p>
@@ -177,17 +177,16 @@
     }
 
     // Función para copiar el PIN al portapapeles
-    function copyPin(pin) {
+    function copyPin(pin, buttonElement) {
       navigator.clipboard.writeText(pin).then(function() {
         // Cambiar temporalmente el texto del botón
-        const button = event.target;
-        const originalText = button.innerHTML;
-        button.innerHTML = '✅ Copiado';
-        button.style.background = '#28a745';
+        const originalText = buttonElement.innerHTML;
+        buttonElement.innerHTML = '✅ Copiado';
+        buttonElement.style.background = '#28a745';
         
         setTimeout(function() {
-          button.innerHTML = originalText;
-          button.style.background = '#007bff';
+          buttonElement.innerHTML = originalText;
+          buttonElement.style.background = '#007bff';
         }, 2000);
       }).catch(function(err) {
         alert('Error al copiar: ' + err);
