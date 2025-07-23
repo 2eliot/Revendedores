@@ -296,6 +296,13 @@ def validate_recharge():
         if amount <= 0:
             return jsonify({"error": "Monto inválido"}), 400
         
+        # Verificar saldo del usuario
+        current_balance = float(db.get_user_balance(user_id))
+        if current_balance < amount:
+            return jsonify({
+                "error": f"Saldo insuficiente. Tu saldo actual es ${current_balance:.2f} y necesitas ${amount:.2f}. Recarga tu cuenta primero."
+            }), 400
+        
         # Buscar un PIN disponible del valor exacto
         available_pin = db.get_available_pin_by_value(amount)
         
@@ -303,6 +310,13 @@ def validate_recharge():
             return jsonify({
                 "error": f"No hay PINés disponibles de ${amount}. Contacta al administrador."
             }), 400
+        
+        # Descontar el monto del saldo del usuario
+        new_balance = current_balance - amount
+        balance_updated = db.update_user_balance(user_id, new_balance)
+        
+        if balance_updated is None:
+            return jsonify({"error": "Error al actualizar el saldo"}), 500
         
         # Marcar el PIN como usado
         used_pin = db.use_pin(available_pin['id'], user_id)
@@ -314,16 +328,19 @@ def validate_recharge():
                 user_id=user_id,
                 pin=available_pin['pin_code'],
                 transaction_id=transaction_id,
-                amount=amount
+                amount=-amount  # Monto negativo para indicar que se descontó
             )
             
             return jsonify({
                 "success": True,
                 "pin": available_pin['pin_code'],
                 "transaction_id": transaction_id,
-                "amount": amount
+                "amount": amount,
+                "new_balance": f"{new_balance:.2f}"
             })
         else:
+            # Si falla el uso del PIN, revertir el saldo
+            db.update_user_balance(user_id, current_balance)
             return jsonify({"error": "Error al procesar la recarga"}), 500
 
     finally:
