@@ -283,17 +283,18 @@ class Database:
         # URL de la API del proveedor
         api_url = "https://inefableshop.net/conexion_api/api.php"
         
-        # Mapeo correcto de valores locales (1-9) a valores de la API del proveedor
+        # Mapeo directo de valores locales (1-9) a valores de la API del proveedor
+        # La API espera valores numéricos simples del 1 al 9
         provider_amount_mapping = {
-            1: 'FFCH100',    # 110 💎 / $0.66
-            2: 'FFCH300',    # 341 💎 / $1.99  
-            3: 'FFCH500',    # 572 💎 / $3.35
-            4: 'FFCH1000',   # 1.166 💎 / $6.70
-            5: 'FFCH2000',   # 2.376 💎 / $12.70
-            6: 'FFCH5000',   # 6.138 💎 / $29.50
-            7: 'FFMP1',      # Tarjeta básica / $0.40
-            8: 'FFMP7',      # Tarjeta semanal / $1.40
-            9: 'FFMP30'      # Tarjeta mensual / $6.50
+            1: '1',    # 110 💎 / $0.66
+            2: '2',    # 341 💎 / $1.99  
+            3: '3',    # 572 💎 / $3.35
+            4: '4',    # 1.166 💎 / $6.70
+            5: '5',    # 2.376 💎 / $12.70
+            6: '6',    # 6.138 💎 / $29.50
+            7: '7',    # Tarjeta básica / $0.40
+            8: '8',    # Tarjeta semanal / $1.40
+            9: '9'     # Tarjeta mensual / $6.50
         }
         
         # Obtener el valor correcto para la API del proveedor
