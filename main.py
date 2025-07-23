@@ -52,7 +52,7 @@ def login():
             session['email'] = admin_user
             session['telefono'] = '000000000'
             return jsonify({"success": True})
-        
+
         # Si no es admin, verificar en base de datos
         db = Database()
         if not db.connect():
@@ -140,11 +140,13 @@ def dashboard():
         transactions = db.get_user_transactions(user_id, limit=10)
         if transactions is None:
             transactions = []
+        banner_message = get_banner_message()
 
         return render_template('dashboard.html', 
                              user_id=user_id, 
                              balance=balance,
-                             transactions=transactions)
+                             transactions=transactions,
+                             banner_message=banner_message)
 
     finally:
         db.disconnect()
@@ -255,21 +257,21 @@ def add_single_pin():
         data = request.get_json()
         pin_code = data.get('pin_code', '').strip().upper()
         value = float(data.get('value', 0))
-        
+
         if not pin_code or value <= 0:
             return jsonify({"error": "PIN y valor son requeridos"}), 400
-        
+
         if len(pin_code) < 4:
             return jsonify({"error": "El PIN debe tener al menos 4 caracteres"}), 400
-        
+
         # Verificar que el PIN no exista ya
         existing_pin = db.get_pin_by_code(pin_code)
         if existing_pin:
             return jsonify({"error": f"El PIN '{pin_code}' ya existe"}), 400
-        
+
         # Crear el PIN
         result = db.create_pin(pin_code, value)
-        
+
         if result:
             return jsonify({
                 "success": True, 
@@ -293,44 +295,44 @@ def freefire_latam_validate_recharge():
         data = request.get_json()
         if not data:
             return jsonify({"error": "Datos de solicitud inválidos"}), 400
-            
+
         user_id = session['user_id']
         option_value = data.get('option_value')  # Valor 1-9 específico de Free Fire Latam
         real_price = data.get('real_price')      # Precio real en USD
-        
+
         if option_value is None or real_price is None:
             return jsonify({"error": "Datos de recarga incompletos"}), 400
-            
+
         option_value = int(option_value)
         real_price = float(real_price)
-        
+
         # Validación específica para Free Fire Latam (1-9)
         if option_value < 1 or option_value > 9:
             return jsonify({"error": "Opción de Free Fire Latam inválida"}), 400
-            
+
         if real_price <= 0:
             return jsonify({"error": "Precio inválido"}), 400
-        
+
         # Verificar saldo del usuario
         current_balance = float(db.get_user_balance(user_id))
         if user_id != 'ADMIN001' and current_balance < real_price:
             return jsonify({
                 "error": f"Saldo insuficiente. Tu saldo actual es ${current_balance:.2f} y necesitas ${real_price:.2f}. Recarga tu cuenta primero."
             }), 400
-        
+
         # PASO 1: Buscar PIN local específico para Free Fire Latam
         available_pin = db.get_available_pin_by_value(option_value)
-        
+
         # PASO 2: Si no hay PINs locales, usar proveedor específico de Free Fire Latam
         if not available_pin:
             print(f"[FREEFIRE LATAM] No hay PINs locales de opción {option_value} (${real_price})")
             pin_from_provider = db.get_freefire_latam_pin(option_value)
-            
+
             if not pin_from_provider:
                 return jsonify({
                     "error": f"No hay PINés de Free Fire Latam disponibles de ${real_price}. Contacta al administrador."
                 }), 400
-        
+
         # Descontar saldo
         if user_id != 'ADMIN001':
             new_balance = current_balance - real_price
@@ -338,10 +340,10 @@ def freefire_latam_validate_recharge():
         else:
             new_balance = current_balance
             balance_updated = True
-        
+
         if balance_updated is None:
             return jsonify({"error": "Error al actualizar el saldo"}), 500
-        
+
         # Procesar según origen del PIN
         if available_pin:
             # PIN local de Free Fire Latam
@@ -349,7 +351,7 @@ def freefire_latam_validate_recharge():
             if used_pin:
                 transaction_id = f"FF{user_id[-3:]}{int(__import__('time').time()) % 10000}"
                 db.insert_transaction(user_id, available_pin['pin_code'], transaction_id, -real_price)
-                
+
                 return jsonify({
                     "success": True,
                     "pin": available_pin['pin_code'],
@@ -361,12 +363,12 @@ def freefire_latam_validate_recharge():
             else:
                 db.update_user_balance(user_id, current_balance)
                 return jsonify({"error": "Error al procesar PIN local"}), 500
-                
+
         elif pin_from_provider:
             # PIN del proveedor específico de Free Fire Latam
             transaction_id = f"FF{user_id[-3:]}{int(__import__('time').time()) % 10000}"
             db.insert_transaction(user_id, pin_from_provider['pin_code'], transaction_id, -real_price)
-            
+
             return jsonify({
                 "success": True,
                 "pin": pin_from_provider['pin_code'],
@@ -375,7 +377,7 @@ def freefire_latam_validate_recharge():
                 "new_balance": f"{new_balance:.2f}",
                 "source": "freefire_latam_api"
             })
-        
+
         else:
             db.update_user_balance(user_id, current_balance)
             return jsonify({"error": "Error inesperado en Free Fire Latam"}), 500
@@ -394,12 +396,12 @@ def freefire_global_validate_recharge():
 def blockstriker():
     """Página de Block Striker - Independiente de otros juegos"""
     user_id = session.get('user_id')
-    
+
     db = Database()
     if not db.connect():
         flash('Error de conexión a la base de datos', 'error')
         return redirect(url_for('dashboard'))
-    
+
     try:
         balance = db.get_user_balance(user_id)
         return render_template('blockstriker.html', 
@@ -420,37 +422,37 @@ def block_striker_validate_recharge():
         data = request.get_json()
         if not data:
             return jsonify({"error": "Datos de solicitud inválidos"}), 400
-            
+
         user_id = session['user_id']
         player_id = data.get('player_id', '').strip()  # ID del jugador de Block Striker
         option_value = data.get('option_value')  # Valor 1-9 específico de Block Striker
         real_price = data.get('real_price')      # Precio real en USD
-        
+
         if not player_id:
             return jsonify({"error": "ID del jugador es requerido"}), 400
-            
+
         if option_value is None or real_price is None:
             return jsonify({"error": "Datos de recarga incompletos"}), 400
-            
+
         option_value = int(option_value)
         real_price = float(real_price)
-        
+
         # Validación específica para Block Striker (1-9)
         if option_value < 1 or option_value > 9:
             return jsonify({"error": "Opción de Block Striker inválida"}), 400
-            
+
         if real_price <= 0:
             return jsonify({"error": "Precio inválido"}), 400
-        
+
         # Verificar saldo del usuario
         current_balance = float(db.get_user_balance(user_id))
         if user_id != 'ADMIN001' and current_balance < real_price:
             return jsonify({
                 "error": f"Saldo insuficiente. Tu saldo actual es ${current_balance:.2f} y necesitas ${real_price:.2f}. Recarga tu cuenta primero."
             }), 400
-        
+
         # Block Striker no requiere código/PIN, solo procesa la compra directamente
-        
+
         # Descontar saldo
         if user_id != 'ADMIN001':
             new_balance = current_balance - real_price
@@ -458,13 +460,13 @@ def block_striker_validate_recharge():
         else:
             new_balance = current_balance
             balance_updated = True
-        
+
         if balance_updated is None:
             return jsonify({"error": "Error al actualizar el saldo"}), 500
-        
+
         # Crear transacción específica para Block Striker sin código
         transaction_id = f"BS{user_id[-3:]}{int(__import__('time').time()) % 10000}"
-        
+
         # Insertar transacción con información específica de Block Striker (sin código)
         db.insert_block_striker_transaction(
             user_id=user_id,
@@ -474,7 +476,7 @@ def block_striker_validate_recharge():
             amount=-real_price,
             option_value=option_value
         )
-        
+
         return jsonify({
             "success": True,
             "player_id": player_id,
@@ -510,9 +512,9 @@ def toggle_user_status(user_id):
     try:
         data = request.get_json()
         action = data.get('action')  # 'activate' o 'deactivate'
-        
+
         result = db.toggle_user_status(user_id, action)
-        
+
         if result:
             return jsonify({"success": True, "message": f"Usuario {action}d exitosamente"})
         else:
@@ -530,9 +532,9 @@ def delete_user(user_id):
 
     try:
         data = request.get_json()
-        
+
         result = db.delete_user(user_id)
-        
+
         if result:
             return jsonify({"success": True, "message": "Usuario eliminado exitosamente"})
         else:
@@ -551,12 +553,12 @@ def add_credit(user_id):
     try:
         data = request.get_json()
         amount = float(data.get('amount', 0))
-        
+
         if amount <= 0:
             return jsonify({"error": "El monto debe ser mayor a 0"}), 400
-        
+
         result = db.add_credit_to_user(user_id, amount)
-        
+
         if result:
             new_balance = db.get_user_balance(user_id)
             return jsonify({
@@ -580,12 +582,12 @@ def set_balance(user_id):
     try:
         data = request.get_json()
         new_balance = float(data.get('balance', 0))
-        
+
         if new_balance < 0:
             return jsonify({"error": "El saldo no puede ser negativo"}), 400
-        
+
         result = db.update_user_balance(user_id, new_balance)
-        
+
         if result is not None:
             return jsonify({
                 "success": True, 
@@ -610,15 +612,15 @@ def update_block_striker_status():
         data = request.get_json()
         transaction_id = data.get('transaction_id')
         new_status = data.get('status')
-        
+
         if not transaction_id or not new_status:
             return jsonify({"error": "ID de transacción y status son requeridos"}), 400
-        
+
         if new_status not in ['procesando', 'aprobado', 'rechazado']:
             return jsonify({"error": "Status inválido"}), 400
-        
+
         result = db.update_block_striker_transaction_status(transaction_id, new_status)
-        
+
         if result:
             return jsonify({
                 "success": True, 
@@ -629,6 +631,45 @@ def update_block_striker_status():
 
     finally:
         db.disconnect()
+
+def is_admin():
+    """Verifica si el usuario actual tiene rol de administrador."""
+    return session.get('user_id') == 'ADMIN001'
+
+@app.route('/admin/update-banner-message', methods=['POST'])
+@admin_required
+def update_banner_message():
+    if not is_admin():
+        return jsonify({'success': False, 'error': 'Acceso denegado'}), 403
+
+    try:
+        data = request.get_json()
+        new_message = data.get('message', '').strip()
+
+        if not new_message:
+            return jsonify({'success': False, 'error': 'El mensaje no puede estar vacío'})
+
+        if len(new_message) > 500:
+            return jsonify({'success': False, 'error': 'El mensaje es demasiado largo (máximo 500 caracteres)'})
+
+        # Guardar el mensaje en un archivo o variable global
+        # Por simplicidad, usaremos un archivo de texto
+        with open('banner_message.txt', 'w', encoding='utf-8') as f:
+            f.write(new_message)
+
+        return jsonify({'success': True, 'message': 'Mensaje del banner actualizado exitosamente'})
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': f'Error al actualizar banner: {str(e)}'})
+
+def get_banner_message():
+    """Obtener el mensaje actual del banner"""
+    try:
+        with open('banner_message.txt', 'r', encoding='utf-8') as f:
+            return f.read().strip()
+    except FileNotFoundError:
+        # Mensaje por defecto si no existe el archivo
+        return "🚨 IMPORTANTE: GameFan temporalmente fuera de servicio - No comprar PINs hasta nuevo aviso 🚨 Recargas de Block Striker requieren aprobación manual 🚨 Soporte disponible 24/7 para consultas 🚨"
 
 # Las credenciales del admin se leen directamente de las variables de entorno
 admin_user = os.getenv('ADMIN_USER', 'admin')

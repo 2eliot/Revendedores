@@ -66,6 +66,7 @@
           <p><strong>Correo:</strong> {{ session.get('email', '---') }}</p>
           {% if session.get('user_id') == 'ADMIN001' %}
           <a href="/admin" class="admin-btn">🛡️ Panel Admin</a>
+          <button onclick="showEditBannerModal()" class="admin-btn edit-banner-btn">✏️ Editar Banner</button>
           {% endif %}
           <a href="/logout" class="logout-btn">Cerrar sesión</a>
         </div>
@@ -81,7 +82,7 @@
   <!-- Banner informativo -->
   <section class="info-banner">
     <div class="marquee-text">
-      🚨 IMPORTANTE: GameFan temporalmente fuera de servicio - No comprar PINs hasta nuevo aviso 🚨 Recargas de Block Striker requieren aprobación manual 🚨 Soporte disponible 24/7 para consultas 🚨
+      {{ banner_message }}
     </div>
   </section>
 
@@ -229,7 +230,23 @@
       }
     });
   </script>
-<!-- Contenedor de notificaciones toast -->
+<!-- Modal para editar banner -->
+  <div id="editBannerModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeEditBannerModal()">&times;</span>
+      <h3>✏️ Editar Mensaje del Banner</h3>
+      <div class="form-group">
+        <label for="banner-message">Mensaje del Banner:</label>
+        <textarea id="banner-message" rows="3" placeholder="Escribe el mensaje del banner aquí..."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button onclick="updateBannerMessage()" class="btn btn-success">Actualizar Banner</button>
+        <button onclick="closeEditBannerModal()" class="btn btn-cancel">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenedor de notificaciones toast -->
   <div class="toast-container" id="toast-container"></div>
 
   <script>
@@ -273,6 +290,62 @@
         setTimeout(() => {
           toast.remove();
         }, 300);
+      }
+    }
+
+    // Funciones para editar banner
+    function showEditBannerModal() {
+      const modal = document.getElementById('editBannerModal');
+      const textarea = document.getElementById('banner-message');
+      
+      // Obtener el mensaje actual del banner
+      const currentMessage = document.querySelector('.marquee-text').textContent.trim();
+      textarea.value = currentMessage;
+      
+      modal.style.display = 'block';
+    }
+
+    function closeEditBannerModal() {
+      document.getElementById('editBannerModal').style.display = 'none';
+    }
+
+    async function updateBannerMessage() {
+      const newMessage = document.getElementById('banner-message').value.trim();
+      
+      if (!newMessage) {
+        showToast('Por favor ingresa un mensaje', 'error');
+        return;
+      }
+
+      try {
+        const response = await fetch('/admin/update-banner-message', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            message: newMessage
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          // Actualizar el mensaje en todas las páginas
+          document.querySelector('.marquee-text').textContent = newMessage;
+          showToast('Mensaje del banner actualizado exitosamente', 'success');
+          closeEditBannerModal();
+        } else {
+          showToast(data.error || 'Error al actualizar el banner', 'error');
+        }
+      } catch (error) {
+        showToast('Error de conexión', 'error');
+      }
+    }
+
+    // Cerrar modal al hacer clic fuera
+    window.onclick = function(event) {
+      const modal = document.getElementById('editBannerModal');
+      if (event.target === modal) {
+        closeEditBannerModal();
       }
     }
   </script>
