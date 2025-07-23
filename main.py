@@ -236,14 +236,13 @@ def admin_users():
 
 @app.route('/admin/user/<user_id>/toggle', methods=['POST'])
 @admin_required
-def toggle_user_status():
+def toggle_user_status(user_id):
     db = Database()
     if not db.connect():
         return jsonify({"error": "Error de conexión a la base de datos"}), 500
 
     try:
         data = request.get_json()
-        user_id = data.get('user_id')
         action = data.get('action')  # 'activate' o 'deactivate'
         
         result = db.toggle_user_status(user_id, action)
@@ -258,14 +257,13 @@ def toggle_user_status():
 
 @app.route('/admin/user/<user_id>/delete', methods=['POST'])
 @admin_required
-def delete_user():
+def delete_user(user_id):
     db = Database()
     if not db.connect():
         return jsonify({"error": "Error de conexión a la base de datos"}), 500
 
     try:
         data = request.get_json()
-        user_id = data.get('user_id')
         
         result = db.delete_user(user_id)
         
@@ -279,14 +277,13 @@ def delete_user():
 
 @app.route('/admin/user/<user_id>/add-credit', methods=['POST'])
 @admin_required
-def add_credit():
+def add_credit(user_id):
     db = Database()
     if not db.connect():
         return jsonify({"error": "Error de conexión a la base de datos"}), 500
 
     try:
         data = request.get_json()
-        user_id = data.get('user_id')
         amount = float(data.get('amount', 0))
         
         if amount <= 0:
