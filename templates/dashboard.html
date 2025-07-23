@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -36,9 +35,19 @@
             <p><strong>Saldo Actual:</strong></p>
             <p class="balance-amount">${{ balance }}</p>
           </div>
-          <div class="wallet-info">
-            <p><strong>ID Usuario:</strong> {{ user_id }}</p>
-            <p><strong>Última actualización:</strong> Ahora</p>
+          <div class="wallet-credits">
+            <h4>💰 Créditos Recibidos</h4>
+            {% set credit_transactions = transactions|selectattr('pin', 'equalto', 'ADMIN')|selectattr('transaction_id', 'match', '.*CREDIT.*')|list %}
+            {% if credit_transactions %}
+              {% for transaction in credit_transactions[:5] %}
+              <div class="credit-item">
+                <span class="credit-amount">+${{ transaction.amount }}</span>
+                <span class="credit-date">{{ transaction.created_at.strftime('%d/%m/%Y %H:%M') }}</span>
+              </div>
+              {% endfor %}
+            {% else %}
+              <div class="no-credits">No hay créditos agregados</div>
+            {% endif %}
           </div>
         </div>
       </div></div>
