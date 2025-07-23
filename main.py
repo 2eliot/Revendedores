@@ -449,10 +449,7 @@ def block_striker_validate_recharge():
                 "error": f"Saldo insuficiente. Tu saldo actual es ${current_balance:.2f} y necesitas ${real_price:.2f}. Recarga tu cuenta primero."
             }), 400
         
-        # Por ahora simulamos un código de Block Striker (cuando se implemente la API real)
-        import random
-        import string
-        simulated_code = 'BS' + ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+        # Block Striker no requiere código/PIN, solo procesa la compra directamente
         
         # Descontar saldo
         if user_id != 'ADMIN001':
@@ -465,14 +462,14 @@ def block_striker_validate_recharge():
         if balance_updated is None:
             return jsonify({"error": "Error al actualizar el saldo"}), 500
         
-        # Crear transacción específica para Block Striker incluyendo el player_id
+        # Crear transacción específica para Block Striker sin código
         transaction_id = f"BLOCKSTRIKER-{user_id}-{int(__import__('time').time())}"
         
-        # Insertar transacción con información específica de Block Striker
+        # Insertar transacción con información específica de Block Striker (sin código)
         db.insert_block_striker_transaction(
             user_id=user_id,
             player_id=player_id,
-            code=simulated_code,
+            code=None,  # No se genera código para Block Striker
             transaction_id=transaction_id,
             amount=-real_price,
             option_value=option_value
@@ -480,12 +477,11 @@ def block_striker_validate_recharge():
         
         return jsonify({
             "success": True,
-            "code": simulated_code,
             "player_id": player_id,
             "transaction_id": transaction_id,
             "amount": real_price,
             "new_balance": f"{new_balance:.2f}",
-            "source": "block_striker_simulated"
+            "source": "block_striker_direct_purchase"
         })
 
     finally:
