@@ -296,9 +296,9 @@ def validate_recharge():
         if amount <= 0:
             return jsonify({"error": "Monto inválido"}), 400
         
-        # Verificar saldo del usuario (excepto para admin)
+        # Verificar saldo del usuario
         current_balance = float(db.get_user_balance(user_id))
-        if current_balance < amount and user_id != 'ADMIN001':
+        if current_balance < amount:
             return jsonify({
                 "error": f"Saldo insuficiente. Tu saldo actual es ${current_balance:.2f} y necesitas ${amount:.2f}. Recarga tu cuenta primero."
             }), 400
@@ -327,18 +327,12 @@ def validate_recharge():
                     "error": f"No hay PINés disponibles de ${amount}. No se pudo obtener PIN del proveedor. Contacta al administrador."
                 }), 400
         
-        # Descontar el monto del saldo del usuario (solo si no es admin o si tiene saldo suficiente)
-        if user_id == 'ADMIN001':
-            # Admin puede comprar sin saldo, mantener saldo actual
-            new_balance = current_balance
-            balance_updated = True
-        else:
-            # Usuario normal, descontar del saldo
-            new_balance = current_balance - amount
-            balance_updated = db.update_user_balance(user_id, new_balance)
-            
-            if balance_updated is None:
-                return jsonify({"error": "Error al actualizar el saldo"}), 500
+        # Descontar el monto del saldo del usuario
+        new_balance = current_balance - amount
+        balance_updated = db.update_user_balance(user_id, new_balance)
+        
+        if balance_updated is None:
+            return jsonify({"error": "Error al actualizar el saldo"}), 500
         
         # Procesar según el origen del PIN
         if available_pin:
@@ -348,12 +342,11 @@ def validate_recharge():
             if used_pin:
                 # Registrar la transacción
                 transaction_id = f"FF-{user_id}-{int(__import__('time').time())}"
-                transaction_amount = 0 if user_id == 'ADMIN001' else -amount
                 db.insert_transaction(
                     user_id=user_id,
                     pin=available_pin['pin_code'],
                     transaction_id=transaction_id,
-                    amount=transaction_amount
+                    amount=-amount
                 )
                 
                 return jsonify({
@@ -365,20 +358,18 @@ def validate_recharge():
                     "source": "local"
                 })
             else:
-                # Si falla el uso del PIN, revertir el saldo (solo si no es admin)
-                if user_id != 'ADMIN001':
-                    db.update_user_balance(user_id, current_balance)
+                # Si falla el uso del PIN, revertir el saldo
+                db.update_user_balance(user_id, current_balance)
                 return jsonify({"error": "Error al procesar la recarga"}), 500
                 
         elif pin_from_provider:
             # PIN del proveedor - entregar directamente
             transaction_id = f"FF-PROVIDER-{user_id}-{int(__import__('time').time())}"
-            transaction_amount = 0 if user_id == 'ADMIN001' else -amount
             db.insert_transaction(
                 user_id=user_id,
                 pin=pin_from_provider['pin_code'],
                 transaction_id=transaction_id,
-                amount=transaction_amount
+                amount=-amount
             )
             
             return jsonify({
@@ -392,8 +383,7 @@ def validate_recharge():
         
         else:
             # Si llegamos aquí, algo salió mal
-            if user_id != 'ADMIN001':
-                db.update_user_balance(user_id, current_balance)
+            db.update_user_balance(user_id, current_balance)
             return jsonify({"error": "Error inesperado al procesar la recarga"}), 500
 
     finally:
