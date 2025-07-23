@@ -393,26 +393,39 @@ class Database:
         return self.execute_query(query, (new_status, transaction_id))
 
     def cleanup_old_transactions(self, user_id, max_transactions=30):
-        """Eliminar transacciones antiguas si el usuario tiene más del máximo permitido"""
-        # Contar transacciones del usuario
-        count_query = "SELECT COUNT(*) FROM transactions WHERE user_id = %s"
-        count_result = self.execute_query(count_query, (user_id,))
+        """Eliminar transacciones antiguas manteniendo solo las últimas 30 por usuario"""
+        try:
+            # Contar transacciones del usuario
+            count_query = "SELECT COUNT(*) FROM transactions WHERE user_id = %s"
+            count_result = self.execute_query(count_query, (user_id,))
 
-        if count_result and count_result[0]['count'] > max_transactions:
-            # Eliminar las transacciones más antiguas, dejando solo las últimas max_transactions
-            delete_query = """
-            DELETE FROM transactions 
-            WHERE user_id = %s 
-            AND id NOT IN (
-                SELECT id FROM (
-                    SELECT id FROM transactions 
-                    WHERE user_id = %s 
-                    ORDER BY created_at DESC 
-                    LIMIT %s
-                ) AS recent_transactions
-            )
-            """
-            result = self.execute_query(delete_query, (user_id, user_id, max_transactions))
-            return result is not None
+            if count_result and count_result[0]['count'] > max_transactions:
+                transactions_to_delete = count_result[0]['count'] - max_transactions
+                
+                # Eliminar las transacciones más antiguas que excedan el límite
+                delete_query = """
+                DELETE FROM transactions 
+                WHERE user_id = %s 
+                AND id IN (
+                    SELECT id FROM (
+                        SELECT id FROM transactions 
+                        WHERE user_id = %s 
+                        ORDER BY created_at ASC 
+                        LIMIT %s
+                    ) AS old_transactions
+                )
+                """
+                result = self.execute_query(delete_query, (user_id, user_id, transactions_to_delete))
+                
+                if result is not None:
+                    print(f"[CLEANUP] Eliminadas {transactions_to_delete} transacciones antiguas del usuario {user_id}")
+                    return True
+                else:
+                    print(f"[CLEANUP] Error eliminando transacciones del usuario {user_id}")
+                    return False
 
-        return True
+            return True
+            
+        except Exception as e:
+            print(f"[CLEANUP] Error en cleanup_old_transactions: {e}")
+            return False
