@@ -290,8 +290,16 @@ def validate_recharge():
 
     try:
         data = request.get_json()
+        if not data:
+            return jsonify({"error": "Datos de solicitud inválidos"}), 400
+            
         user_id = session['user_id']
-        amount = float(data.get('amount', 0))
+        amount_value = data.get('amount')
+        
+        if amount_value is None:
+            return jsonify({"error": "Monto no especificado"}), 400
+            
+        amount = float(amount_value)
         
         if amount <= 0:
             return jsonify({"error": "Monto inválido"}), 400

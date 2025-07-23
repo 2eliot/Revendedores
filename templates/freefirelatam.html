@@ -118,7 +118,7 @@
         return;
       }
 
-      const [diamonds, price] = select.value.split('|');
+      const amount = parseFloat(select.value);
       
       showMessage('Procesando recarga...', 'info');
 
@@ -127,7 +127,7 @@
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({
-            amount: parseFloat(price)
+            amount: amount
           })
         });
 
@@ -157,7 +157,7 @@
                 </button>
               </p>
               <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>🆔 ID Transacción:</strong> ${data.transaction_id}</p>
-              <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>💰 Costo:</strong> $${price}</p>
+              <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>💰 Costo:</strong> $${amount}</p>
               <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>👤 Usuario:</strong> {{ session.get('nombre', '') }} {{ session.get('apellido', '') }}</p>
               <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>📅 Fecha y Hora:</strong> ${fechaHora}</p>
               <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>🔄 Origen:</strong> ${data.source === 'provider_api' ? 'Proveedor API' : 'Base de datos local'}</p>
