@@ -73,6 +73,7 @@ body {
   gap: 1rem;
   align-items: center;
   position: relative;
+  margin-left: auto;
 }
 .icon {
   width: 32px;
