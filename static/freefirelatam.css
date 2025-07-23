@@ -1,4 +1,3 @@
-
 * {
   margin: 0;
   padding: 0;
@@ -7,12 +6,69 @@
 
 body {
   font-family: 'Inter', sans-serif;
-  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #ff4757 100%);
-  min-height: 100vh;
-  color: #333;
+  background-color: #f8f9fa;
+  padding: 2rem;
+  text-align: center;
 }
 
-/* Header */
+.juego-container {
+  max-width: 480px;
+  margin: auto;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  padding: 2rem;
+}
+
+.juego-titulo {
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  color: #222;
+}
+
+.juego-form {
+  margin-bottom: 1.5rem;
+}
+
+.juego-form label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.juego-form select {
+  padding: 0.5rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.juego-form button {
+  padding: 0.6rem 1.2rem;
+  background-color: #333;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.juego-form button:hover {
+  background-color: #444;
+}
+
+.juego-descripcion {
+  font-size: 0.95rem;
+  background-color: #f0f0f0;
+  padding: 1rem;
+  border-radius: 8px;
+  color: #444;
+}
+
+/* Header styles */
 .header {
   background: rgba(0,0,0,0.8);
   backdrop-filter: blur(10px);
@@ -20,6 +76,7 @@ body {
   position: sticky;
   top: 0;
   z-index: 100;
+  margin: -2rem -2rem 2rem -2rem;
 }
 
 .header-content {
@@ -309,10 +366,23 @@ textarea:focus {
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .header {
+  body {
     padding: 1rem;
   }
-  
+
+  .juego-container {
+    padding: 1.5rem;
+  }
+
+  .juego-titulo {
+    font-size: 1.5rem;
+  }
+
+  .header {
+    padding: 1rem;
+    margin: -1rem -1rem 1rem -1rem;
+  }
+
   .header h1 {
     font-size: 1.5rem;
   }
