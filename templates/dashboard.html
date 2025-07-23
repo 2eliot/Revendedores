@@ -119,6 +119,21 @@
             <span class="{{ 'positive-amount' if transaction.amount > 0 else 'negative-amount' }}">
               {{ '+' if transaction.amount > 0 else '' }}${{ transaction.amount }}
             </span>
+            {% if transaction.game_type == 'Block Striker' %}
+              {% if transaction.status == 'procesando' %}
+                <span class="status-badge processing">🔄 Procesando</span>
+              {% elif transaction.status == 'aprobado' %}
+                <span class="status-badge approved">✅ Aprobado</span>
+              {% elif transaction.status == 'rechazado' %}
+                <span class="status-badge rejected">❌ Rechazado</span>
+              {% endif %}
+            {% endif %}
+          </div>
+          {% endif %}
+          {% if transaction.game_type == 'Block Striker' and transaction.status == 'procesando' and session.get('user_id') == 'ADMIN001' %}
+          <div class="block-striker-actions">
+            <button onclick="updateBlockStrikerStatus('{{ transaction.transaction_id }}', 'aprobado')" class="btn-approve">✅ Aprobar</button>
+            <button onclick="updateBlockStrikerStatus('{{ transaction.transaction_id }}', 'rechazado')" class="btn-reject">❌ Rechazar</button>
           </div>
           {% endif %}
           <div><strong>Fecha:</strong> {{ transaction.created_at.strftime('%d/%m/%Y %H:%M') }}</div>
@@ -148,6 +163,31 @@
     }
     function toggleWalletBox() {
       document.getElementById("wallet-box").classList.toggle("visible");
+    }
+
+    // Función para actualizar status de Block Striker
+    async function updateBlockStrikerStatus(transactionId, newStatus) {
+      try {
+        const response = await fetch('/admin/block-striker/update-status', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            transaction_id: transactionId,
+            status: newStatus
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          alert(`Transacción ${newStatus} exitosamente`);
+          location.reload();
+        } else {
+          alert(data.error);
+        }
+      } catch (error) {
+        alert('Error al actualizar el status');
+      }
     }
 
     // Cerrar ventanas al hacer clic fuera

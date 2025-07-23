@@ -10,22 +10,27 @@ def apply_migration():
         return False
     
     try:
-        # Leer el archivo de migración
-        with open('migrate_transactions.sql', 'r') as f:
-            migration_sql = f.read()
+        # Leer los archivos de migración
+        migration_files = ['migrate_transactions.sql', 'migrate_block_striker_status.sql']
         
-        # Ejecutar cada comando de la migración
-        commands = migration_sql.split(';')
-        for command in commands:
-            command = command.strip()
-            if command:
-                print(f"Ejecutando: {command}")
-                result = db.execute_query(command)
-                if result is None:
-                    print(f"Error ejecutando comando: {command}")
-                    return False
+        for file_name in migration_files:
+            if os.path.exists(file_name):
+                print(f"Aplicando migración: {file_name}")
+                with open(file_name, 'r') as f:
+                    migration_sql = f.read()
+                    
+                # Ejecutar cada comando de la migración
+                commands = migration_sql.split(';')
+                for command in commands:
+                    command = command.strip()
+                    if command:
+                        print(f"Ejecutando: {command}")
+                        result = db.execute_query(command)
+                        if result is None:
+                            print(f"Error ejecutando comando: {command}")
+                            return False
         
-        print("✅ Migración aplicada exitosamente")
+        print("✅ Todas las migraciones aplicadas exitosamente")
         return True
         
     except Exception as e:

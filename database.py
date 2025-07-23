@@ -368,19 +368,29 @@ class Database:
         return None
 
     def insert_block_striker_transaction(self, user_id, player_id, code, transaction_id, amount, option_value):
-        """Insertar transacción específica de Block Striker con player_id"""
+        """Insertar transacción específica de Block Striker con player_id y status procesando"""
         query = """
-        INSERT INTO transactions (user_id, pin, transaction_id, amount, created_at, player_id, game_type, option_value)
-        VALUES (%s, %s, %s, %s, NOW(), %s, %s, %s)
+        INSERT INTO transactions (user_id, pin, transaction_id, amount, created_at, player_id, game_type, option_value, status)
+        VALUES (%s, %s, %s, %s, NOW(), %s, %s, %s, %s)
         RETURNING *
         """
-        result = self.execute_query(query, (user_id, code, transaction_id, amount, player_id, 'Block Striker', option_value))
+        result = self.execute_query(query, (user_id, code, transaction_id, amount, player_id, 'Block Striker', option_value, 'procesando'))
 
         # Limpiar transacciones antiguas después de insertar una nueva
         if result:
             self.cleanup_old_transactions(user_id)
 
         return result
+
+    def update_block_striker_transaction_status(self, transaction_id, new_status):
+        """Actualizar el status de una transacción de Block Striker"""
+        query = """
+        UPDATE transactions 
+        SET status = %s 
+        WHERE transaction_id = %s AND game_type = 'Block Striker'
+        RETURNING *
+        """
+        return self.execute_query(query, (new_status, transaction_id))
 
     def cleanup_old_transactions(self, user_id, max_transactions=30):
         """Eliminar transacciones antiguas si el usuario tiene más del máximo permitido"""

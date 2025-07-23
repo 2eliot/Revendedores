@@ -598,6 +598,38 @@ def set_balance(user_id):
     finally:
         db.disconnect()
 
+@app.route('/admin/block-striker/update-status', methods=['POST'])
+@admin_required
+def update_block_striker_status():
+    """Actualizar el status de una transacción de Block Striker"""
+    db = Database()
+    if not db.connect():
+        return jsonify({"error": "Error de conexión a la base de datos"}), 500
+
+    try:
+        data = request.get_json()
+        transaction_id = data.get('transaction_id')
+        new_status = data.get('status')
+        
+        if not transaction_id or not new_status:
+            return jsonify({"error": "ID de transacción y status son requeridos"}), 400
+        
+        if new_status not in ['procesando', 'aprobado', 'rechazado']:
+            return jsonify({"error": "Status inválido"}), 400
+        
+        result = db.update_block_striker_transaction_status(transaction_id, new_status)
+        
+        if result:
+            return jsonify({
+                "success": True, 
+                "message": f"Transacción {new_status} exitosamente"
+            })
+        else:
+            return jsonify({"error": "No se pudo actualizar el status"}), 400
+
+    finally:
+        db.disconnect()
+
 # Las credenciales del admin se leen directamente de las variables de entorno
 admin_user = os.getenv('ADMIN_USER', 'admin')
 admin_password = os.getenv('ADMIN_PASSWORD', 'password')
