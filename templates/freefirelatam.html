@@ -98,6 +98,7 @@
 
       const select = document.getElementById('amount-select');
       const messageDiv = document.getElementById('message');
+      const descripcionDiv = document.querySelector('.juego-descripcion');
 
       if (!select.value) {
         showMessage('Por favor selecciona un monto', 'error');
@@ -110,7 +111,19 @@
       showMessage('Procesando recarga...', 'info');
 
       setTimeout(() => {
-        showMessage(`¡Recarga exitosa! ${diamonds} diamantes agregados. Precio: $${price}. ID: ${transactionId}`, 'success');
+        // Cambiar toda la descripción por el mensaje de éxito
+        descripcionDiv.innerHTML = `
+          <h3>🎉 ¡Recarga Exitosa!</h3>
+          <div style="background: linear-gradient(135deg, #28a745, #20c997); color: white; padding: 1.5rem; border-radius: 8px; margin: 1rem 0;">
+            <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>💎 Diamantes:</strong> ${diamonds}</p>
+            <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>💰 Precio:</strong> $${price}</p>
+            <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>🔖 ID Transacción:</strong> ${transactionId}</p>
+            <p style="margin: 0.5rem 0; font-size: 0.9rem; opacity: 0.9;">Los diamantes han sido agregados a tu cuenta de Free Fire Latam.</p>
+          </div>
+          <p><strong>Saldo actual:</strong> ${{ balance }}</p>
+        `;
+        
+        showMessage('', ''); // Limpiar mensaje
         select.value = '';
       }, 2000);
     }
