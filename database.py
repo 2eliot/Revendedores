@@ -313,9 +313,22 @@ class Database:
                 import json
                 json_response = json.loads(response_data)
 
-                # Verificar si la respuesta JSON indica éxito
-                if json_response.get('ALERTA') == 'VERDE' and json_response.get('PIN'):
-                    pin_code = json_response['PIN'].upper().strip()
+                # Verificar si la respuesta JSON indica éxito (tanto 'ALERTA' como 'alerta')
+                alert_status = json_response.get('ALERTA') or json_response.get('alerta', '').upper()
+                pin_code = json_response.get('PIN') or json_response.get('pin')
+
+                # Si pin es null pero hay mensaje, extraer PIN del mensaje
+                if not pin_code and 'mensaje' in json_response:
+                    mensaje = json_response['mensaje']
+                    # Buscar el PIN en el mensaje usando regex
+                    import re
+                    pin_match = re.search(r'<b>Pin:<\/b>\s*([A-Z0-9]+)', mensaje)
+                    if pin_match:
+                        pin_code = pin_match.group(1).strip()
+                        print(f"PIN extraído del mensaje: {pin_code}")
+
+                if (alert_status == 'VERDE' or alert_status == 'GREEN') and pin_code:
+                    pin_code = pin_code.upper().strip()
 
                     # Validar que el PIN tenga un formato válido
                     if len(pin_code) >= 4 and len(pin_code) <= 20:
