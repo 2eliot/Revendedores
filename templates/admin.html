@@ -70,6 +70,8 @@
                 <td class="actions">
                   <button onclick="showCreditModal('{{ user.user_id }}', '{{ user.nombre }} {{ user.apellido }}')" 
                           class="btn-action btn-credit">💰</button>
+                  <button onclick="showBalanceModal('{{ user.user_id }}', '{{ user.nombre }} {{ user.apellido }}', '{{ user.balance }}')" 
+                          class="btn-action btn-balance">✏️</button>
                   <button onclick="toggleUserStatus('{{ user.user_id }}', {{ 'false' if user.is_active else 'true' }})" 
                           class="btn-action btn-toggle">
                     {{ '🔒' if user.is_active else '🔓' }}
@@ -107,6 +109,24 @@
     </div>
   </div>
 
+  <!-- Modal para editar saldo -->
+  <div id="balanceModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeBalanceModal()">&times;</span>
+      <h3>Editar Saldo</h3>
+      <p>Usuario: <span id="balance-user-name"></span></p>
+      <p>Saldo actual: $<span id="current-balance"></span></p>
+      <div class="form-group">
+        <label for="new-balance">Nuevo saldo:</label>
+        <input type="number" id="new-balance" min="0" step="0.01" placeholder="0.00">
+      </div>
+      <div class="modal-actions">
+        <button onclick="setBalance()" class="btn btn-success">Actualizar Saldo</button>
+        <button onclick="closeBalanceModal()" class="btn btn-cancel">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal de confirmación -->
   <div id="confirmModal" class="modal">
     <div class="modal-content">
@@ -135,6 +155,20 @@
     function closeCreditModal() {
       document.getElementById('creditModal').style.display = 'none';
       document.getElementById('credit-amount').value = '';
+      selectedUserId = null;
+    }
+
+    function showBalanceModal(userId, userName, currentBalance) {
+      selectedUserId = userId;
+      document.getElementById('balance-user-name').textContent = userName;
+      document.getElementById('current-balance').textContent = currentBalance;
+      document.getElementById('new-balance').value = currentBalance;
+      document.getElementById('balanceModal').style.display = 'block';
+    }
+
+    function closeBalanceModal() {
+      document.getElementById('balanceModal').style.display = 'none';
+      document.getElementById('new-balance').value = '';
       selectedUserId = null;
     }
 
@@ -175,6 +209,41 @@
         }
       } catch (error) {
         alert('Error al agregar crédito');
+      }
+    }
+
+    async function setBalance() {
+      const newBalance = document.getElementById('new-balance').value;
+      
+      if (newBalance === '' || newBalance < 0) {
+        alert('Por favor ingresa un saldo válido');
+        return;
+      }
+
+      try {
+        const response = await fetch(`/admin/user/${selectedUserId}/set-balance`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            balance: newBalance
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          // Actualizar el saldo en la tabla
+          const row = document.querySelector(`tr[data-user-id="${selectedUserId}"]`);
+          const balanceCell = row.querySelector('.balance');
+          balanceCell.textContent = '$' + data.new_balance;
+          
+          alert(data.message);
+          closeBalanceModal();
+        } else {
+          alert(data.error);
+        }
+      } catch (error) {
+        alert('Error al actualizar saldo');
       }
     }
 

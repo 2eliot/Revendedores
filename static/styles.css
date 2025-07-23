@@ -357,6 +357,10 @@ body {
   background-color: #fff3cd;
 }
 
+.btn-balance:hover {
+  background-color: #e2f3ff;
+}
+
 .btn-toggle:hover {
   background-color: #d1ecf1;
 }

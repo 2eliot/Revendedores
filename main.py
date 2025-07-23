@@ -304,6 +304,34 @@ def add_credit(user_id):
     finally:
         db.disconnect()
 
+@app.route('/admin/user/<user_id>/set-balance', methods=['POST'])
+@admin_required
+def set_balance(user_id):
+    db = Database()
+    if not db.connect():
+        return jsonify({"error": "Error de conexión a la base de datos"}), 500
+
+    try:
+        data = request.get_json()
+        new_balance = float(data.get('balance', 0))
+        
+        if new_balance < 0:
+            return jsonify({"error": "El saldo no puede ser negativo"}), 400
+        
+        result = db.update_user_balance(user_id, new_balance)
+        
+        if result is not None:
+            return jsonify({
+                "success": True, 
+                "message": f"Saldo actualizado exitosamente",
+                "new_balance": str(new_balance)
+            })
+        else:
+            return jsonify({"error": "No se pudo actualizar el saldo"}), 400
+
+    finally:
+        db.disconnect()
+
 # Las credenciales del admin se leen directamente de las variables de entorno
 admin_user = os.getenv('ADMIN_USER', 'admin')
 admin_password = os.getenv('ADMIN_PASSWORD', 'password')
