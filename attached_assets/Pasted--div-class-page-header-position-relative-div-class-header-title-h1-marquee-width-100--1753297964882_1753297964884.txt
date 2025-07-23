@@ -1,0 +1,253 @@
+<div class="page-header position-relative">
+<div class="header-title">
+<h1>
+<marquee width="100%" scrollamount="5" id="marquesina"><b><font color="green" face="verdana">Game fan esta caído no compren pines hasta que se restablezcan </font></b></marquee>
+</h1>
+</div><div class="page-body"><div class="row">
+<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+<div class="row">
+</div>﻿<center>
+<div class="" style="background-color: white; Black; border-radius: 50px;">
+    <div class="panel-heading" style="background-color: Black; color: white; font-size: 1.2rem; padding: 1rem; border-radius: 50px;">
+        <h3 class="panel-title">¡Potencia tu experiencia en Blood Strike al instante!</h3>
+    </div>
+    <div class="panel-body">
+        <form role="form" id="send" name="send" action="" method="post">
+            <div class="box-body">
+                <center>
+                        <img src="./images/BloodStrike.png" style="width: 50%;">
+                    </center><table class="table" style="margin: 0 auto;">
+                    
+                    <tbody><tr>
+                        <td class="datosGeneral"><label for="monto"><b>Selecciona el monto:</b></label></td>
+                        <td>
+                            <select id="monto" name="monto" class="form-control" style="background-color: #AAF0F4;" required="">
+                                <option value="">Seleccione paquete</option>
+                                <option value="1">100+16 🪙 / $0.82</option>
+                                <option value="2">300+52 🪙 / $2.60</option>
+                                <option value="3">500+94 🪙 / $4.30</option>
+                                <option value="4">1,000+210 🪙 / $8.65</option>
+                                <option value="5">2,000+486 🪙 / $17.30</option>
+                                <option value="6">5,000+1,380 🪙 / $43.15</option>
+                                <option value="7">Pase Elite 🎖️ / $3.50</option>
+                                <option value="8">Pase Elite (Plus) 🎖️ / $8.00</option>
+                                <option value="9">Pase de Mejora 🔫 / $1.85</option>
+                                <option value="10">Cofre Camuflaje Ultra 💼 / $0.50</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="datosGeneral"><label for="idJugador"><b>ID de jugador:</b></label></td>
+                        <td>
+                            <input type="tel" id="idJugador" name="idJugador" class="form-control" style="background-color: #AAF0F4;" placeholder="Ingresa tu ID de jugador" required="">
+                        </td>
+                    </tr>
+                </tbody></table>
+                <br>
+                <div class="text-center">
+                    <a href="javascript:validacion();" class="btn btn-primary" style="border-color: Black; border-radius: 20px; background-color: Black !important;">Recargar</a>
+                    <br><br>
+                    <div id="error" style="color: red; font-weight: bold; font-style: italic;"></div>
+                </div>
+                <br>
+                <div class="informacion">
+                    <p><strong>Importante:</strong> Las recargas realizadas no tienen reembolso una vez completadas.</p>
+                    <p style="color: red; font-weight: bold; font-style: italic;">¡Obtén bonificaciones exclusivas por tiempo limitado!</p>
+                    <br><br>
+                    <p>Recarga tus monedas y pases en Blood Strike de forma rápida, segura y usando solo tu ID de jugador.</p>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+</center>
+<script type="text/javascript">
+
+
+
+function validacion()
+{
+
+$('#error').empty();
+var monto = $('#monto').val();
+var idJugador = $('#idJugador').val();
+
+
+
+if(monto=='')
+{
+var mensaje='Seleccione el monto.';
+$('#error').text(mensaje);
+}
+else
+if(idJugador=='')
+{
+var mensaje='Indique el id Jugador.';
+$('#error').text(mensaje);
+}
+else
+{
+enviar(monto,idJugador);
+}
+
+}
+
+
+
+function enviar(paquete,idJugador)
+{
+
+$('.informacion').empty();
+$('.informacion').html('<center><img src=./images/cargando.gif ><br><b><font color=red>Por favor espere...</font><b></center>');
+
+ $.ajax({
+  type: 'POST',
+  url: 'procesos.php',
+  data: {
+'action': 'recarga',
+'tipo': 'recargaBloodStrike',
+'monto': paquete,
+'numero': idJugador,
+
+'s': '$sesionId'
+
+},
+success: function(data)
+{
+
+if(data)
+{
+var json = JSON.parse(data);
+var alerta= json.alerta;
+var id= json.id;
+var usuario= json.usuario;
+var clave= json.clave;
+var perfil= json.perfil;
+var pin_perfil= json.pin_perfil;
+
+var mensaje= json.mensaje;
+var aprobacion= json.aprobacion;
+var pin= json.pin;
+var nuevo_credito= json.nuevo_credito;
+var credito_divisa= json.credito_divisa;
+
+var plan="";     
+
+
+
+
+
+if(paquete==='1'){
+plan="100+5 🪙";
+}
+else
+if(paquete==='2'){
+plan="300+20 🪙 ";
+
+}
+else
+if(paquete==='3'){
+plan="500+40 🪙 ";
+
+}
+else
+if(paquete==='4'){
+plan="1,000+100 🪙 ";
+
+}
+else
+if(paquete==='5'){
+plan="2,000+260 🪙 ";
+
+}
+else
+if(paquete==='6'){
+plan="5,000+800  🪙 ";
+
+}
+else
+if(paquete==='7'){
+plan="Pase Elite 🔥";
+
+}
+else
+if(paquete==='8'){
+plan="Pase Elite(Plus) 🔥";
+
+}
+else
+if(paquete==='9'){
+plan="Pase De Mejora 🔫";
+
+}else
+if(paquete==='10'){
+plan="Cofre camuflaje de aspecto ultra 💼";
+
+}
+
+
+
+
+
+
+if(alerta==='green'){
+
+document.getElementById('credito').innerHTML = `Saldo: $ ${nuevo_credito}`;
+
+
+var html = `
+<body>
+  <div style="max-width: 400px; margin: 0 auto;  border: 1px solid #ddd; border-radius: 5px;">
+    <table align="center" width="100%" style="font-size: 16px; border-collapse: collapse;">
+      <tr align="left" style="background-color: #ffffff;">
+        <td style="padding: 10px;">
+          <h4 style="margin: 0;"><b>Pin:</b> ${usuario}</h4>
+        </td>
+      </tr>
+      <tr align="left" style="background-color: #ffffff;">
+        <td style="padding: 10px;">
+          <h4 style="margin: 0;"><b>Plan:</b> ${plan}</h4>
+        </td>
+      </tr>
+      <tr align="left" style="background-color: #ffffff;">
+        <td style="padding: 10px;">
+          <h4 style="margin: 0;"><b>NÂ° AprobaciÃ³n:</b> ${aprobacion}</h4>
+        </td>
+      </tr>
+
+    </table>
+  </div>
+
+</body>
+`;
+
+
+$('.informacion').html('<b><font color=green>Recarga exitosa</font><font color=black> <br><br>Plan: '+plan+'<br>'+mensaje+'</font></b>');
+
+
+
+}
+else
+{
+
+
+
+$('.informacion').html('<b><font color=red>'+mensaje+'</font></b>');
+}
+
+
+
+}
+
+
+}
+
+});
+
+}
+
+</script>
+</div>
+</div>
+</div>
+</div>
