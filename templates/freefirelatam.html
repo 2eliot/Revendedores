@@ -72,13 +72,16 @@
     <form class="juego-form" onsubmit="handleRecharge(event)">
       <label for="amount-select">Selecciona el Monto</label>
       <select id="amount-select" required>
-        <option value="">-- Selecciona un monto --</option>
-        <option value="100|1.99">100 💎 - $1.99</option>
-        <option value="310|4.99">310 💎 - $4.99</option>
-        <option value="520|9.99">520 💎 - $9.99</option>
-        <option value="1080|19.99">1080 💎 - $19.99</option>
-        <option value="2200|39.99">2200 💎 - $39.99</option>
-        <option value="5600|99.99">5600 💎 - $99.99</option>
+        <option value="">-- Selecciona un paquete --</option>
+        <option id="monto_1" value="1">110 💎 / $0.66 (✅)</option>
+        <option id="monto_2" value="2">341 💎 / $1.99 (✅)</option>
+        <option id="monto_3" value="3">572 💎 / $3.35 (✅)</option>
+        <option id="monto_4" value="4">1.166 💎 / $6.70 (✅)</option>
+        <option id="monto_5" value="5">2.376 💎 / $12.70 (✅)</option>
+        <option id="monto_6" value="6">6.138 💎 / $29.50 (✅)</option>
+        <option id="monto_7" value="7">Tarjeta básica / $0.40 (✅)</option>
+        <option id="monto_8" value="8">Tarjeta semanal / $1.40 (✅)</option>
+        <option id="monto_9" value="9">Tarjeta mensual / $6.50 (✅)</option>
       </select>
 
       <button type="submit">Validar Recarga</button>
@@ -86,9 +89,19 @@
 
     <div class="juego-descripcion">
       <h3>Descripción del Juego</h3>
-      <p>Free Fire Latam es la versión latinoamericana del popular battle royale. Recarga diamantes para obtener armas, skins y otros elementos premium.</p>
+      <p>Guía rápida para usar tu PIN: <p>
+        <li>Dirígete al sitio oficial de <a href="https://pagostore.garena.com/" target="_blank">https://pagostore.garena.com/</a></li>
+        <li>Accede con tu cuenta usando tu <strong>ID de jugador</strong></li>
+        <li>Verifica que la región seleccionada sea <strong>Bolivia</strong></li>
+        <li>Selecciona un paquete con el mismo valor de tu código PIN</li>
+        <li>Elige el método de pago <strong>Gamefan</strong></li>
+        <li>En la sección <strong>Gamecenter Gamefan</strong>, ingresa tu código</li>
+      <li>¡Hecho! Tus diamantes estarán disponibles al instante</li>
       <p><strong>Saldo actual:</strong> ${{ balance }}</p>
       <div id="message" class="message"></div>
+      <div class="text-center" style="margin-top: 1.5rem;">
+          <a href="https://pagostore.garena.com/" target="_blank" class="btn btn-outline-success" style="border-radius: 25px; padding: 10px 25px; font-weight: bold; font-size: 1rem;">Canjear ahora</a>
+      </div>
     </div>
   </div>
 
