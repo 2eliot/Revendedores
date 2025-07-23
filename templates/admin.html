@@ -21,7 +21,7 @@
     </div>
   </header>
 
-  <!-- Panel de administrador -->
+  <!-- Panel de administrador con pestañas -->
   <section class="admin-panel">
     <div class="admin-stats">
       <div class="stat-card">
@@ -32,62 +32,133 @@
         <h3>Usuarios Activos</h3>
         <span id="active-users">{{ users|selectattr('is_active')|list|length if users else 0 }}</span>
       </div>
+      <div class="stat-card">
+        <h3>PINEs Disponibles</h3>
+        <span id="available-pins">{{ pins_stats|sum(attribute='available') if pins_stats else 0 }}</span>
+      </div>
     </div>
 
-    <div class="users-section">
-      <h2>Gestión de Usuarios</h2>
-      <button onclick="refreshUsers()" class="btn-refresh">🔄 Actualizar</button>
-      
-      <div class="users-table-container">
-        <table class="users-table">
-          <thead>
-            <tr>
-              <th>ID Usuario</th>
-              <th>Nombre</th>
-              <th>Email</th>
-              <th>Teléfono</th>
-              <th>Saldo</th>
-              <th>Estado</th>
-              <th>Fecha Registro</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody id="users-tbody">
-            {% if users %}
-              {% for user in users %}
-              <tr data-user-id="{{ user.user_id }}">
-                <td>{{ user.user_id }}</td>
-                <td>{{ user.nombre }} {{ user.apellido }}</td>
-                <td>{{ user.email }}</td>
-                <td>{{ user.telefono }}</td>
-                <td class="balance">${{ user.balance }}</td>
-                <td>
-                  <span class="status {{ 'active' if user.is_active else 'inactive' }}">
-                    {{ 'Activo' if user.is_active else 'Inactivo' }}
-                  </span>
-                </td>
-                <td>{{ user.created_at.strftime('%d/%m/%Y') if user.created_at else '---' }}</td>
-                <td class="actions">
-                  <button onclick="showCreditModal('{{ user.user_id }}', '{{ user.nombre }} {{ user.apellido }}')" 
-                          class="btn-action btn-credit">💰</button>
-                  <button onclick="showBalanceModal('{{ user.user_id }}', '{{ user.nombre }} {{ user.apellido }}', '{{ user.balance }}')" 
-                          class="btn-action btn-balance">✏️</button>
-                  <button onclick="toggleUserStatus('{{ user.user_id }}', {{ 'false' if user.is_active else 'true' }})" 
-                          class="btn-action btn-toggle">
-                    {{ '🔒' if user.is_active else '🔓' }}
-                  </button>
-                  <button onclick="deleteUser('{{ user.user_id }}', '{{ user.nombre }} {{ user.apellido }}')" 
-                          class="btn-action btn-delete">🗑️</button>
-                </td>
-              </tr>
-              {% endfor %}
-            {% else %}
-              <tr>
-                <td colspan="8" class="no-users">No hay usuarios registrados</td>
-              </tr>
-            {% endif %}
-          </tbody>
-        </table>
+    <!-- Pestañas -->
+    <div class="tab-container">
+      <div class="tab-buttons">
+        <button class="tab-button active" onclick="showTab('users')">👥 Usuarios</button>
+        <button class="tab-button" onclick="showTab('pins')">📌 Agregar PINés</button>
+      </div>
+
+      <!-- Pestaña de Usuarios -->
+      <div id="users-tab" class="tab-content active">
+        <div class="users-section">
+          <h2>Gestión de Usuarios</h2>
+          <button onclick="refreshUsers()" class="btn-refresh">🔄 Actualizar</button>
+          
+          <div class="users-table-container">
+            <table class="users-table">
+              <thead>
+                <tr>
+                  <th>ID Usuario</th>
+                  <th>Nombre</th>
+                  <th>Email</th>
+                  <th>Teléfono</th>
+                  <th>Saldo</th>
+                  <th>Estado</th>
+                  <th>Fecha Registro</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="users-tbody">
+                {% if users %}
+                  {% for user in users %}
+                  <tr data-user-id="{{ user.user_id }}">
+                    <td>{{ user.user_id }}</td>
+                    <td>{{ user.nombre }} {{ user.apellido }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.telefono }}</td>
+                    <td class="balance">${{ user.balance }}</td>
+                    <td>
+                      <span class="status {{ 'active' if user.is_active else 'inactive' }}">
+                        {{ 'Activo' if user.is_active else 'Inactivo' }}
+                      </span>
+                    </td>
+                    <td>{{ user.created_at.strftime('%d/%m/%Y') if user.created_at else '---' }}</td>
+                    <td class="actions">
+                      <button onclick="showCreditModal('{{ user.user_id }}', '{{ user.nombre }} {{ user.apellido }}')" 
+                              class="btn-action btn-credit">💰</button>
+                      <button onclick="showBalanceModal('{{ user.user_id }}', '{{ user.nombre }} {{ user.apellido }}', '{{ user.balance }}')" 
+                              class="btn-action btn-balance">✏️</button>
+                      <button onclick="toggleUserStatus('{{ user.user_id }}', {{ 'false' if user.is_active else 'true' }})" 
+                              class="btn-action btn-toggle">
+                        {{ '🔒' if user.is_active else '🔓' }}
+                      </button>
+                      <button onclick="deleteUser('{{ user.user_id }}', '{{ user.nombre }} {{ user.apellido }}')" 
+                              class="btn-action btn-delete">🗑️</button>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                {% else %}
+                  <tr>
+                    <td colspan="8" class="no-users">No hay usuarios registrados</td>
+                  </tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pestaña de PINés -->
+      <div id="pins-tab" class="tab-content">
+        <div class="pins-section">
+          <h2>Gestión de PINés</h2>
+          
+          <!-- Formulario para agregar PINés -->
+          <div class="add-pins-form">
+            <h3>Agregar Nuevos PINés</h3>
+            <form onsubmit="addPins(event)">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="pin-value">Valor del PIN:</label>
+                  <select id="pin-value" required>
+                    <option value="">-- Seleccionar valor --</option>
+                    <option value="1.99">$1.99</option>
+                    <option value="4.99">$4.99</option>
+                    <option value="9.99">$9.99</option>
+                    <option value="19.99">$19.99</option>
+                    <option value="39.99">$39.99</option>
+                    <option value="99.99">$99.99</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="pin-quantity">Cantidad:</label>
+                  <input type="number" id="pin-quantity" min="1" max="100" value="1" required>
+                </div>
+                <div class="form-group">
+                  <button type="submit" class="btn btn-success">Generar PINés</button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Estadísticas de PINés -->
+          <div class="pins-stats">
+            <h3>Estadísticas de PINés</h3>
+            <div class="stats-grid">
+              {% if pins_stats %}
+                {% for stat in pins_stats %}
+                <div class="stat-item">
+                  <div class="stat-value">${{ stat.value }}</div>
+                  <div class="stat-details">
+                    <span class="available">{{ stat.available }} disponibles</span>
+                    <span class="used">{{ stat.used }} usados</span>
+                    <span class="total">{{ stat.total }} total</span>
+                  </div>
+                </div>
+                {% endfor %}
+              {% else %}
+                <p>No hay PINés en el sistema</p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -142,8 +213,56 @@
   <script>
     let selectedUserId = null;
 
+    function showTab(tabName) {
+      // Ocultar todas las pestañas
+      document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('active');
+      });
+
+      // Mostrar la pestaña seleccionada
+      document.getElementById(tabName + '-tab').classList.add('active');
+      event.target.classList.add('active');
+    }
+
     function refreshUsers() {
       location.reload();
+    }
+
+    async function addPins(event) {
+      event.preventDefault();
+      
+      const value = document.getElementById('pin-value').value;
+      const quantity = document.getElementById('pin-quantity').value;
+      
+      if (!value || !quantity) {
+        alert('Por favor completa todos los campos');
+        return;
+      }
+
+      try {
+        const response = await fetch('/admin/add-pins', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            value: parseFloat(value),
+            quantity: parseInt(quantity)
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          alert(`${quantity} PINés de $${value} generados exitosamente`);
+          location.reload();
+        } else {
+          alert(data.error);
+        }
+      } catch (error) {
+        alert('Error al generar PINés');
+      }
     }
 
     function showCreditModal(userId, userName) {
@@ -197,7 +316,6 @@
         const data = await response.json();
 
         if (data.success) {
-          // Actualizar el saldo en la tabla
           const row = document.querySelector(`tr[data-user-id="${selectedUserId}"]`);
           const balanceCell = row.querySelector('.balance');
           balanceCell.textContent = '$' + data.new_balance;
@@ -232,7 +350,6 @@
         const data = await response.json();
 
         if (data.success) {
-          // Actualizar el saldo en la tabla
           const row = document.querySelector(`tr[data-user-id="${selectedUserId}"]`);
           const balanceCell = row.querySelector('.balance');
           balanceCell.textContent = '$' + data.new_balance;

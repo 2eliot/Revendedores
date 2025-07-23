@@ -93,7 +93,7 @@
   </div>
 
   <script>
-    function handleRecharge(event) {
+    async function handleRecharge(event) {
       event.preventDefault();
 
       const select = document.getElementById('amount-select');
@@ -106,26 +106,43 @@
       }
 
       const [diamonds, price] = select.value.split('|');
-      const transactionId = 'FF-' + Date.now();
-
+      
       showMessage('Procesando recarga...', 'info');
 
-      setTimeout(() => {
-        // Cambiar toda la descripción por el mensaje de éxito
-        descripcionDiv.innerHTML = `
-          <h3>🎉 ¡Recarga Exitosa!</h3>
-          <div style="background: linear-gradient(135deg, #28a745, #20c997); color: white; padding: 1.5rem; border-radius: 8px; margin: 1rem 0;">
-            <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>💎 Diamantes:</strong> ${diamonds}</p>
-            <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>💰 Precio:</strong> $${price}</p>
-            <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>🔖 ID Transacción:</strong> ${transactionId}</p>
-            <p style="margin: 0.5rem 0; font-size: 0.9rem; opacity: 0.9;">Los diamantes han sido agregados a tu cuenta de Free Fire Latam.</p>
-          </div>
-          <p><strong>Saldo actual:</strong> ${{ balance }}</p>
-        `;
-        
-        showMessage('', ''); // Limpiar mensaje
-        select.value = '';
-      }, 2000);
+      try {
+        const response = await fetch('/validate-recharge', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            amount: parseFloat(price)
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          // Cambiar toda la descripción por el mensaje de éxito
+          descripcionDiv.innerHTML = `
+            <h3>🎉 ¡Recarga Exitosa!</h3>
+            <div style="background: linear-gradient(135deg, #28a745, #20c997); color: white; padding: 1.5rem; border-radius: 8px; margin: 1rem 0;">
+              <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>💎 Diamantes:</strong> ${diamonds}</p>
+              <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>💰 Precio:</strong> $${price}</p>
+              <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>🔖 PIN:</strong> ${data.pin}</p>
+              <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>🔖 ID Transacción:</strong> ${data.transaction_id}</p>
+              <p style="margin: 0.5rem 0; font-size: 0.9rem; opacity: 0.9;">Los diamantes han sido agregados a tu cuenta de Free Fire Latam.</p>
+              <p style="margin: 0.5rem 0; font-size: 0.9rem; opacity: 0.9;"><strong>Guarda tu PIN:</strong> ${data.pin}</p>
+            </div>
+            <p><strong>Saldo actual:</strong> ${{ balance }}</p>
+          `;
+          
+          showMessage('', ''); // Limpiar mensaje
+          select.value = '';
+        } else {
+          showMessage(data.error, 'error');
+        }
+      } catch (error) {
+        showMessage('Error de conexión. Intenta nuevamente.', 'error');
+      }
     }
 
     function showMessage(text, type) {

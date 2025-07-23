@@ -239,7 +239,96 @@ def admin_panel():
 
     try:
         users = db.get_all_users()
-        return render_template('admin.html', users=users)
+        pins_stats = db.get_pins_stats()
+        return render_template('admin.html', users=users, pins_stats=pins_stats)
+    finally:
+        db.disconnect()
+
+@app.route('/admin/add-pins', methods=['POST'])
+@admin_required
+def add_pins():
+    db = Database()
+    if not db.connect():
+        return jsonify({"error": "Error de conexión a la base de datos"}), 500
+
+    try:
+        data = request.get_json()
+        value = float(data.get('value', 0))
+        quantity = int(data.get('quantity', 0))
+        
+        if value <= 0 or quantity <= 0:
+            return jsonify({"error": "Valor y cantidad deben ser mayores a 0"}), 400
+        
+        # Generar PINés únicos
+        import random
+        import string
+        
+        pins_created = 0
+        for i in range(quantity):
+            # Generar PIN único de 8 caracteres
+            pin_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+            
+            # Verificar que no exista
+            result = db.create_pin(pin_code, value)
+            if result:
+                pins_created += 1
+        
+        if pins_created > 0:
+            return jsonify({
+                "success": True, 
+                "message": f"{pins_created} PINés creados exitosamente"
+            })
+        else:
+            return jsonify({"error": "No se pudieron crear los PINés"}), 400
+
+    finally:
+        db.disconnect()
+
+@app.route('/validate-recharge', methods=['POST'])
+@login_required
+def validate_recharge():
+    db = Database()
+    if not db.connect():
+        return jsonify({"error": "Error de conexión a la base de datos"}), 500
+
+    try:
+        data = request.get_json()
+        user_id = session['user_id']
+        amount = float(data.get('amount', 0))
+        
+        if amount <= 0:
+            return jsonify({"error": "Monto inválido"}), 400
+        
+        # Buscar un PIN disponible del valor exacto
+        available_pin = db.get_available_pin_by_value(amount)
+        
+        if not available_pin:
+            return jsonify({
+                "error": f"No hay PINés disponibles de ${amount}. Contacta al administrador."
+            }), 400
+        
+        # Marcar el PIN como usado
+        used_pin = db.use_pin(available_pin['id'], user_id)
+        
+        if used_pin:
+            # Registrar la transacción
+            transaction_id = f"FF-{user_id}-{int(__import__('time').time())}"
+            db.insert_transaction(
+                user_id=user_id,
+                pin=available_pin['pin_code'],
+                transaction_id=transaction_id,
+                amount=amount
+            )
+            
+            return jsonify({
+                "success": True,
+                "pin": available_pin['pin_code'],
+                "transaction_id": transaction_id,
+                "amount": amount
+            })
+        else:
+            return jsonify({"error": "Error al procesar la recarga"}), 500
+
     finally:
         db.disconnect()
 

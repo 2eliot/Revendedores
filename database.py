@@ -179,3 +179,57 @@ class Database:
             )
         
         return result is not None and len(result) > 0
+
+    def create_pin(self, pin_code, value):
+        """Crear un nuevo PIN"""
+        query = """
+        INSERT INTO pins (pin_code, value, created_at)
+        VALUES (%s, %s, NOW())
+        RETURNING *
+        """
+        return self.execute_query(query, (pin_code, value))
+    
+    def get_available_pin_by_value(self, value):
+        """Obtener un PIN disponible del valor específico"""
+        query = """
+        SELECT * FROM pins 
+        WHERE value = %s AND is_used = false 
+        ORDER BY created_at ASC 
+        LIMIT 1
+        """
+        result = self.execute_query(query, (value,))
+        return result[0] if result else None
+    
+    def use_pin(self, pin_id, user_id):
+        """Marcar un PIN como usado"""
+        query = """
+        UPDATE pins 
+        SET is_used = true, user_id = %s, used_at = NOW()
+        WHERE id = %s AND is_used = false
+        RETURNING *
+        """
+        return self.execute_query(query, (user_id, pin_id))
+    
+    def get_pins_stats(self):
+        """Obtener estadísticas de PINEs"""
+        query = """
+        SELECT 
+            value,
+            COUNT(*) as total,
+            COUNT(CASE WHEN is_used = false THEN 1 END) as available,
+            COUNT(CASE WHEN is_used = true THEN 1 END) as used
+        FROM pins 
+        GROUP BY value 
+        ORDER BY value ASC
+        """
+        return self.execute_query(query)
+    
+    def get_all_pins(self):
+        """Obtener todos los PINEs"""
+        query = """
+        SELECT p.*, u.nombre, u.apellido 
+        FROM pins p
+        LEFT JOIN users u ON p.user_id = u.user_id
+        ORDER BY p.created_at DESC
+        """
+        return self.execute_query(query)
