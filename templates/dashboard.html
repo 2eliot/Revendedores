@@ -39,7 +39,7 @@
             <h4>💰 Créditos Recibidos</h4>
             {% set credit_transactions = [] %}
             {% for transaction in transactions %}
-              {% if transaction.pin == 'ADMIN' and 'CREDIT' in transaction.transaction_id %}
+              {% if transaction.pin == 'ADMIN' and transaction.transaction_id.startswith('CR') and transaction.amount > 0 %}
                 {% set _ = credit_transactions.append(transaction) %}
               {% endif %}
             {% endfor %}
