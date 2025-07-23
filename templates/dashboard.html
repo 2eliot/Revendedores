@@ -184,20 +184,10 @@
         const data = await response.json();
 
         if (data.success) {
-          // Actualizar el status en la interfaz
-          const statusElement = document.querySelector(`.transaction-list li:has(div:contains("${transactionId}")) .status-badge`);
-          if (statusElement) {
-            statusElement.className = `status-badge ${newStatus}`;
-            statusElement.textContent = newStatus === 'aprobado' ? '✅ Aprobado' : '❌ Rechazado';
-          }
-
-          // Ocultar los botones de acción
-          const actionsDiv = document.querySelector(`.transaction-list li:has(div:contains("${transactionId}")) .block-striker-actions`);
-          if (actionsDiv) {
-            actionsDiv.style.display = 'none';
-          }
+          alert(`Transacción ${newStatus} exitosamente`);
+          location.reload();
         } else {
-          alert('Error: ' + data.error);
+          alert(data.error);
         }
       } catch (error) {
         alert('Error al actualizar el status');
