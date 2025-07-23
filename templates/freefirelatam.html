@@ -1,0 +1,215 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Free Fire Latam - Recarga</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='freefirelatam.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-content">
+      <button class="back-btn" onclick="goBack()">
+        <svg viewBox="0 0 24 24" width="24" height="24">
+          <path d="M19 12H5m7-7l-7 7 7 7" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Volver
+      </button>
+      <h1>Free Fire Latam</h1>
+      <div class="user-balance">
+        Saldo: ${{ balance }}
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="game-container">
+      <!-- Game Logo/Image -->
+      <div class="game-header">
+        <div class="game-logo">
+          <div class="ff-logo">🔥</div>
+          <h2>Free Fire Latam</h2>
+        </div>
+        <p class="game-description">Recarga diamantes para Free Fire Latam</p>
+      </div>
+
+      <!-- Form -->
+      <form class="recharge-form" onsubmit="handleRecharge(event)">
+        <!-- User ID Input -->
+        <div class="form-group">
+          <label for="user-id">ID de Usuario</label>
+          <input type="text" id="user-id" placeholder="Ingresa tu ID de Free Fire" required>
+        </div>
+
+        <!-- Amount Selection -->
+        <div class="form-group">
+          <label>Selecciona el Monto</label>
+          <div class="amount-grid">
+            <button type="button" class="amount-btn" data-amount="100" data-price="1.99">
+              <span class="diamonds">100 💎</span>
+              <span class="price">$1.99</span>
+            </button>
+            <button type="button" class="amount-btn" data-amount="310" data-price="4.99">
+              <span class="diamonds">310 💎</span>
+              <span class="price">$4.99</span>
+            </button>
+            <button type="button" class="amount-btn" data-amount="520" data-price="9.99">
+              <span class="diamonds">520 💎</span>
+              <span class="price">$9.99</span>
+            </button>
+            <button type="button" class="amount-btn" data-amount="1080" data-price="19.99">
+              <span class="diamonds">1080 💎</span>
+              <span class="price">$19.99</span>
+            </button>
+            <button type="button" class="amount-btn" data-amount="2200" data-price="39.99">
+              <span class="diamonds">2200 💎</span>
+              <span class="price">$39.99</span>
+            </button>
+            <button type="button" class="amount-btn" data-amount="5600" data-price="99.99">
+              <span class="diamonds">5600 💎</span>
+              <span class="price">$99.99</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="form-group">
+          <label for="description">Descripción (Opcional)</label>
+          <textarea id="description" rows="3" placeholder="Agrega una descripción para tu recarga..."></textarea>
+        </div>
+
+        <!-- Selected Amount Display -->
+        <div class="selected-amount" id="selected-display" style="display: none;">
+          <h3>Resumen de la Compra</h3>
+          <div class="summary-item">
+            <span>Diamantes:</span>
+            <span id="selected-diamonds">-</span>
+          </div>
+          <div class="summary-item">
+            <span>Precio:</span>
+            <span id="selected-price">$0.00</span>
+          </div>
+          <div class="summary-item">
+            <span>ID Usuario:</span>
+            <span id="summary-user-id">-</span>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="validate-btn" id="validate-btn" disabled>
+          Validar Recarga
+        </button>
+
+        <!-- Message Display -->
+        <div id="message" class="message"></div>
+      </form>
+    </div>
+  </main>
+
+  <script>
+    let selectedAmount = null;
+    let selectedPrice = null;
+
+    // Back button functionality
+    function goBack() {
+      window.history.back();
+    }
+
+    // Amount selection
+    document.querySelectorAll('.amount-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        // Remove active class from all buttons
+        document.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('active'));
+        
+        // Add active class to clicked button
+        this.classList.add('active');
+        
+        // Get selected values
+        selectedAmount = this.dataset.amount;
+        selectedPrice = this.dataset.price;
+        
+        // Update display
+        document.getElementById('selected-diamonds').textContent = selectedAmount + ' 💎';
+        document.getElementById('selected-price').textContent = '$' + selectedPrice;
+        
+        // Show summary
+        document.getElementById('selected-display').style.display = 'block';
+        
+        // Update user ID in summary
+        updateSummary();
+        
+        // Enable validate button if user ID is filled
+        checkFormValidity();
+      });
+    });
+
+    // User ID input
+    document.getElementById('user-id').addEventListener('input', function() {
+      updateSummary();
+      checkFormValidity();
+    });
+
+    function updateSummary() {
+      const userId = document.getElementById('user-id').value;
+      document.getElementById('summary-user-id').textContent = userId || '-';
+    }
+
+    function checkFormValidity() {
+      const userId = document.getElementById('user-id').value;
+      const validateBtn = document.getElementById('validate-btn');
+      
+      if (userId && selectedAmount) {
+        validateBtn.disabled = false;
+      } else {
+        validateBtn.disabled = true;
+      }
+    }
+
+    // Form submission
+    function handleRecharge(event) {
+      event.preventDefault();
+      
+      const userId = document.getElementById('user-id').value;
+      const description = document.getElementById('description').value;
+      const messageDiv = document.getElementById('message');
+      
+      if (!selectedAmount || !userId) {
+        showMessage('Por favor completa todos los campos requeridos', 'error');
+        return;
+      }
+
+      // Simulate transaction
+      const transactionId = 'FF-' + Date.now();
+      
+      showMessage('Procesando recarga...', 'info');
+      
+      // Simulate API call
+      setTimeout(() => {
+        showMessage(`¡Recarga exitosa! ${selectedAmount} diamantes agregados a la cuenta ${userId}. ID de transacción: ${transactionId}`, 'success');
+        
+        // Reset form after successful transaction
+        setTimeout(() => {
+          document.getElementById('user-id').value = '';
+          document.getElementById('description').value = '';
+          document.querySelectorAll('.amount-btn').forEach(btn => btn.classList.remove('active'));
+          document.getElementById('selected-display').style.display = 'none';
+          selectedAmount = null;
+          selectedPrice = null;
+          checkFormValidity();
+          messageDiv.innerHTML = '';
+        }, 3000);
+      }, 2000);
+    }
+
+    function showMessage(text, type) {
+      const messageDiv = document.getElementById('message');
+      messageDiv.textContent = text;
+      messageDiv.className = 'message ' + type;
+    }
+  </script>
+</body>
+</html>

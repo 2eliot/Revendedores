@@ -149,6 +149,28 @@ def dashboard():
     finally:
         db.disconnect()
 
+@app.route('/freefirelatam')
+@login_required
+def freefirelatam():
+    db = Database()
+    if not db.connect():
+        return "Error de conexión a la base de datos", 500
+
+    try:
+        user_id = session['user_id']
+
+        # Obtener saldo real de la base de datos
+        balance = db.get_user_balance(user_id)
+        if balance is None:
+            balance = "0.00"
+
+        return render_template('freefirelatam.html', 
+                             user_id=user_id, 
+                             balance=balance)
+
+    finally:
+        db.disconnect()
+
 @app.route('/add_transaction', methods=['POST'])
 @login_required
 def add_transaction():
