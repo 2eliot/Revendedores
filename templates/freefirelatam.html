@@ -151,7 +151,7 @@
           `;
           
           showMessage('', ''); // Limpiar mensaje
-          select.value = '';
+          // No limpiar el select para mantener el monto seleccionado
         } else {
           showMessage(data.error, 'error');
         }
