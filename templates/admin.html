@@ -234,7 +234,7 @@
             </div>
             <div class="price-actions">
               <button onclick="updateFreefirePrices()" class="btn btn-success">💾 Guardar Precios Free Fire</button>
-              <button onclick="loadCurrentPrices('freefire_latam')" class="btn btn-secondary">🔄 Cargar Precios Actuales</button>
+              <button onclick="loadCurrentPrices('freefire_latam', true)" class="btn btn-secondary">🔄 Cargar Precios Actuales</button>
             </div>
           </div>
 
@@ -290,7 +290,7 @@
             </div>
             <div class="price-actions">
               <button onclick="updateBlockStrikerPrices()" class="btn btn-success">💾 Guardar Precios Block Striker</button>
-              <button onclick="loadCurrentPrices('block_striker')" class="btn btn-secondary">🔄 Cargar Precios Actuales</button>
+              <button onclick="loadCurrentPrices('block_striker', true)" class="btn btn-secondary">🔄 Cargar Precios Actuales</button>
             </div>
           </div>
         </div>
@@ -654,7 +654,7 @@
     }
 
     // Funciones para gestión de precios
-    async function loadCurrentPrices(gameType) {
+    async function loadCurrentPrices(gameType, showAlert = false) {
       try {
         const response = await fetch('/admin/get-game-prices');
         const data = await response.json();
@@ -670,12 +670,18 @@
             }
           });
           
-          alert(`Precios de ${gameType === 'freefire_latam' ? 'Free Fire Latam' : 'Block Striker'} cargados`);
+          if (showAlert) {
+            alert(`Precios de ${gameType === 'freefire_latam' ? 'Free Fire Latam' : 'Block Striker'} cargados`);
+          }
         } else {
-          alert('Error cargando precios: ' + data.error);
+          if (showAlert) {
+            alert('Error cargando precios: ' + data.error);
+          }
         }
       } catch (error) {
-        alert('Error al cargar precios: ' + error);
+        if (showAlert) {
+          alert('Error al cargar precios: ' + error);
+        }
       }
     }
 
