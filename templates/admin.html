@@ -112,9 +112,13 @@
           
           <!-- Formulario para agregar PINés -->
           <div class="add-pins-form">
-            <h3>Agregar Nuevos PINés</h3>
-            <form onsubmit="addPins(event)">
+            <h3>Agregar Nuevo PIN</h3>
+            <form onsubmit="addSinglePin(event)">
               <div class="form-row">
+                <div class="form-group">
+                  <label for="pin-code">Código del PIN:</label>
+                  <input type="text" id="pin-code" placeholder="Ej: ABC123XY" maxlength="20" required>
+                </div>
                 <div class="form-group">
                   <label for="pin-value">Valor del PIN:</label>
                   <select id="pin-value" required>
@@ -128,11 +132,7 @@
                   </select>
                 </div>
                 <div class="form-group">
-                  <label for="pin-quantity">Cantidad:</label>
-                  <input type="number" id="pin-quantity" min="1" max="100" value="1" required>
-                </div>
-                <div class="form-group">
-                  <button type="submit" class="btn btn-success">Generar PINés</button>
+                  <button type="submit" class="btn btn-success">Agregar PIN</button>
                 </div>
               </div>
             </form>
@@ -231,37 +231,44 @@
       location.reload();
     }
 
-    async function addPins(event) {
+    async function addSinglePin(event) {
       event.preventDefault();
       
+      const pinCode = document.getElementById('pin-code').value.trim().toUpperCase();
       const value = document.getElementById('pin-value').value;
-      const quantity = document.getElementById('pin-quantity').value;
       
-      if (!value || !quantity) {
+      if (!pinCode || !value) {
         alert('Por favor completa todos los campos');
         return;
       }
 
+      if (pinCode.length < 4) {
+        alert('El PIN debe tener al menos 4 caracteres');
+        return;
+      }
+
       try {
-        const response = await fetch('/admin/add-pins', {
+        const response = await fetch('/admin/add-single-pin', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({
-            value: parseFloat(value),
-            quantity: parseInt(quantity)
+            pin_code: pinCode,
+            value: parseFloat(value)
           })
         });
 
         const data = await response.json();
 
         if (data.success) {
-          alert(`${quantity} PINés de $${value} generados exitosamente`);
+          alert(`PIN "${pinCode}" de $${value} agregado exitosamente`);
+          document.getElementById('pin-code').value = '';
+          document.getElementById('pin-value').value = '';
           location.reload();
         } else {
           alert(data.error);
         }
       } catch (error) {
-        alert('Error al generar PINés');
+        alert('Error al agregar PIN');
       }
     }
 

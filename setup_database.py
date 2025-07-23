@@ -63,3 +63,43 @@ def setup_database():
 
 if __name__ == "__main__":
     setup_database()
+import os
+import psycopg2
+from dotenv import load_dotenv
+
+load_dotenv()
+
+def setup_database():
+    try:
+        # Conectar usando DATABASE_URL
+        database_url = os.environ.get('DATABASE_URL')
+        if database_url:
+            connection = psycopg2.connect(database_url)
+        else:
+            connection = psycopg2.connect(
+                host=os.environ.get('DB_HOST'),
+                database=os.environ.get('DB_NAME'),
+                user=os.environ.get('DB_USER'),
+                password=os.environ.get('DB_PASSWORD'),
+                port=os.environ.get('DB_PORT', '5432')
+            )
+        
+        cursor = connection.cursor()
+        
+        # Leer y ejecutar el archivo SQL
+        with open('create_tables.sql', 'r') as f:
+            sql_script = f.read()
+        
+        cursor.execute(sql_script)
+        connection.commit()
+        
+        print("✅ Base de datos configurada exitosamente")
+        
+        cursor.close()
+        connection.close()
+        
+    except Exception as e:
+        print(f"❌ Error configurando la base de datos: {e}")
+
+if __name__ == "__main__":
+    setup_database()

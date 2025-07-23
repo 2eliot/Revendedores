@@ -244,42 +244,39 @@ def admin_panel():
     finally:
         db.disconnect()
 
-@app.route('/admin/add-pins', methods=['POST'])
+@app.route('/admin/add-single-pin', methods=['POST'])
 @admin_required
-def add_pins():
+def add_single_pin():
     db = Database()
     if not db.connect():
         return jsonify({"error": "Error de conexión a la base de datos"}), 500
 
     try:
         data = request.get_json()
+        pin_code = data.get('pin_code', '').strip().upper()
         value = float(data.get('value', 0))
-        quantity = int(data.get('quantity', 0))
         
-        if value <= 0 or quantity <= 0:
-            return jsonify({"error": "Valor y cantidad deben ser mayores a 0"}), 400
+        if not pin_code or value <= 0:
+            return jsonify({"error": "PIN y valor son requeridos"}), 400
         
-        # Generar PINés únicos
-        import random
-        import string
+        if len(pin_code) < 4:
+            return jsonify({"error": "El PIN debe tener al menos 4 caracteres"}), 400
         
-        pins_created = 0
-        for i in range(quantity):
-            # Generar PIN único de 8 caracteres
-            pin_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
-            
-            # Verificar que no exista
-            result = db.create_pin(pin_code, value)
-            if result:
-                pins_created += 1
+        # Verificar que el PIN no exista ya
+        existing_pin = db.get_pin_by_code(pin_code)
+        if existing_pin:
+            return jsonify({"error": f"El PIN '{pin_code}' ya existe"}), 400
         
-        if pins_created > 0:
+        # Crear el PIN
+        result = db.create_pin(pin_code, value)
+        
+        if result:
             return jsonify({
                 "success": True, 
-                "message": f"{pins_created} PINés creados exitosamente"
+                "message": f"PIN '{pin_code}' de ${value} creado exitosamente"
             })
         else:
-            return jsonify({"error": "No se pudieron crear los PINés"}), 400
+            return jsonify({"error": "No se pudo crear el PIN"}), 400
 
     finally:
         db.disconnect()
