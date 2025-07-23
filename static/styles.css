@@ -734,12 +734,15 @@ body {
 
 .modal-content {
   background-color: #fff;
-  margin: 10% auto;
+  margin: 0;
   padding: 2rem;
   border-radius: 8px;
   width: 90%;
   max-width: 500px;
-  position: relative;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .close {
