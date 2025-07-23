@@ -60,11 +60,11 @@ class Database:
         RETURNING *
         """
         result = self.execute_query(query, (user_id, pin, transaction_id, amount))
-        
+
         # Limpiar transacciones antiguas después de insertar una nueva
         if result:
             self.cleanup_old_transactions(user_id)
-            
+
         return result
 
     def get_user_transactions(self, user_id, limit=10, offset=0):
@@ -271,68 +271,52 @@ class Database:
         """Obtener PIN del proveedor API para Free Fire Latam"""
         import requests
         import os
-        
+
         # Obtener credenciales del proveedor desde secretos
         provider_user = os.getenv('PROVIDER_USER')
         provider_password = os.getenv('PROVIDER_PASSWORD')
-        
+
         if not provider_user or not provider_password:
             print("Error: Credenciales del proveedor no configuradas")
             return None
-        
+
         # URL de la API del proveedor
         api_url = "https://inefableshop.net/conexion_api/api.php"
-        
-        # Mapeo directo de valores locales (1-9) a valores de la API del proveedor
-        # La API espera valores numéricos simples del 1 al 9
-        provider_amount_mapping = {
-            1: '1',    # 110 💎 / $0.66
-            2: '2',    # 341 💎 / $1.99  
-            3: '3',    # 572 💎 / $3.35
-            4: '4',    # 1.166 💎 / $6.70
-            5: '5',    # 2.376 💎 / $12.70
-            6: '6',    # 6.138 💎 / $29.50
-            7: '7',    # Tarjeta básica / $0.40
-            8: '8',    # Tarjeta semanal / $1.40
-            9: '9'     # Tarjeta mensual / $6.50
-        }
-        
-        # Obtener el valor correcto para la API del proveedor
-        provider_amount = provider_amount_mapping.get(amount_value)
-        
-        if not provider_amount:
-            print(f"Valor {amount_value} no válido para la API del proveedor")
+
+        # Validar que el valor esté en el rango correcto (1-9)
+        if amount_value < 1 or amount_value > 9:
+            print(f"Valor {amount_value} no válido. Debe estar entre 1 y 9")
             return None
-        
+
         # Parámetros para la solicitud
         params = {
             'action': 'recarga',
             'usuario': provider_user,
             'clave': provider_password,
-            'tipo': 'recargaPinFreefire',
-            'monto': provider_amount,
+            'tipo': 'recargaPinFreefirebs',  # Tipo fijo para Free Fire Latam
+            'monto': str(amount_value),      # Monto del 1 al 9 según el paquete
             'numero': '0'
         }
-        
+
         try:
             # Realizar solicitud a la API del proveedor
             print(f"Consultando API del proveedor con parámetros: {params}")
             response = requests.get(api_url, params=params, timeout=30)
             response.raise_for_status()
-            
+
             # La respuesta puede ser JSON o texto plano
             response_data = response.text.strip()
             print(f"Respuesta completa de la API: {response_data}")
-            
+
             # Intentar parsear como JSON primero
             try:
                 import json
                 json_response = json.loads(response_data)
-                
+
                 # Verificar si la respuesta JSON indica éxito
                 if json_response.get('ALERTA') == 'VERDE' and json_response.get('PIN'):
                     pin_code = json_response['PIN'].upper().strip()
-                    
+
                     # Validar que el PIN tenga un formato válido
                     if len(pin_code) >= 4 and len(pin_code) <= 20:
                         return {
@@ -348,12 +332,12 @@ class Database:
                     error_msg = json_response.get('MENSAJE', 'Error desconocido')
                     print(f"Error de la API del proveedor: {error_msg}")
                     return None
-                    
+
             except json.JSONDecodeError:
                 # Si no es JSON, asumir que es un PIN en texto plano
                 # Limpiar la respuesta de posibles etiquetas HTML
                 clean_response = response_data
-                
+
                 # Remover advertencias de PHP si existen
                 if '<BR />' in clean_response or '<B>WARNING</B>' in clean_response:
                     # Buscar el PIN después de las advertencias
@@ -381,7 +365,7 @@ class Database:
                     else:
                         print(f"Respuesta inválida del proveedor: {clean_response}")
                         return None
-                
+
         except requests.exceptions.RequestException as e:
             print(f"Error al conectar con el proveedor de PINs: {e}")
             return None
@@ -394,7 +378,7 @@ class Database:
         # Contar transacciones del usuario
         count_query = "SELECT COUNT(*) FROM transactions WHERE user_id = %s"
         count_result = self.execute_query(count_query, (user_id,))
-        
+
         if count_result and count_result[0]['count'] > max_transactions:
             # Eliminar las transacciones más antiguas, dejando solo las últimas max_transactions
             delete_query = """
@@ -411,5 +395,5 @@ class Database:
             """
             result = self.execute_query(delete_query, (user_id, user_id, max_transactions))
             return result is not None
-        
+
         return True
