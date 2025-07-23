@@ -123,15 +123,15 @@
                   <label for="pin-value">Valor del PIN:</label>
                   <select id="pin-value" required>
                     <option value="">-- Seleccionar valor --</option>
-                    <option id="monto_1" value="1">110 💎 / $0.66 (✅)</option>
-                    <option id="monto_2" value="2">341 💎 / $1.99 (✅)</option>
-                    <option id="monto_3" value="3">572 💎 / $3.35 (✅)</option>
-                    <option id="monto_4" value="4">1.166 💎 / $6.70 (✅)</option>
-                    <option id="monto_5" value="5">2.376 💎 / $12.70 (✅)</option>
-                    <option id="monto_6" value="6">6.138 💎 / $29.50 (✅)</option>
-                    <option id="monto_7" value="7">Tarjeta básica / $0.40 (✅)</option>
-                    <option id="monto_8" value="8">Tarjeta semanal / $1.40 (✅)</option>
-                    <option id="monto_9" value="9">Tarjeta mensual / $6.50 (✅)</option>
+                    <option value="1">Opción 1 - 110 💎 / $0.66</option>
+                    <option value="2">Opción 2 - 341 💎 / $1.99</option>
+                    <option value="3">Opción 3 - 572 💎 / $3.35</option>
+                    <option value="4">Opción 4 - 1.166 💎 / $6.70</option>
+                    <option value="5">Opción 5 - 2.376 💎 / $12.70</option>
+                    <option value="6">Opción 6 - 6.138 💎 / $29.50</option>
+                    <option value="7">Opción 7 - Tarjeta básica / $0.40</option>
+                    <option value="8">Opción 8 - Tarjeta semanal / $1.40</option>
+                    <option value="9">Opción 9 - Tarjeta mensual / $6.50</option>
                   </select>
                 </div>
                 <div class="form-group">
@@ -215,6 +215,19 @@
 
   <script>
     let selectedUserId = null;
+    
+    // Mapeo de valores a precios reales (igual que en freefirelatam.html)
+    const priceMapping = {
+      '1': 0.66,  // 110 💎
+      '2': 1.99,  // 341 💎  
+      '3': 3.35,  // 572 💎
+      '4': 6.70,  // 1.166 💎
+      '5': 12.70, // 2.376 💎
+      '6': 29.50, // 6.138 💎
+      '7': 0.40,  // Tarjeta básica
+      '8': 1.40,  // Tarjeta semanal
+      '9': 6.50   // Tarjeta mensual
+    };
 
     function showTab(tabName) {
       // Ocultar todas las pestañas
@@ -238,9 +251,9 @@
       event.preventDefault();
       
       const pinCode = document.getElementById('pin-code').value.trim().toUpperCase();
-      const value = document.getElementById('pin-value').value;
+      const optionValue = document.getElementById('pin-value').value;
       
-      if (!pinCode || !value) {
+      if (!pinCode || !optionValue) {
         alert('Por favor completa todos los campos');
         return;
       }
@@ -250,20 +263,26 @@
         return;
       }
 
+      const realPrice = priceMapping[optionValue];
+      if (!realPrice) {
+        alert('Valor de opción inválido');
+        return;
+      }
+
       try {
         const response = await fetch('/admin/add-single-pin', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({
             pin_code: pinCode,
-            value: parseFloat(value)
+            value: parseInt(optionValue) // Enviar el valor de opción (1-9)
           })
         });
 
         const data = await response.json();
 
         if (data.success) {
-          alert(`PIN "${pinCode}" de $${value} agregado exitosamente`);
+          alert(`PIN "${pinCode}" de opción ${optionValue} ($${realPrice}) agregado exitosamente`);
           document.getElementById('pin-code').value = '';
           document.getElementById('pin-value').value = '';
           location.reload();
