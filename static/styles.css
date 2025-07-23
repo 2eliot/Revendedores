@@ -934,3 +934,37 @@ body {
   from { width: 100%; }
   to { width: 0%; }
 }
+
+/* ==== RESPONSIVE DESIGN - MÓVILES ==== */
+@media (max-width: 768px) {
+  /* Banner informativo más pequeño en móviles */
+  .info-banner {
+    padding: 0.4rem 0;
+    font-size: 0.8rem;
+  }
+  
+  .marquee-text {
+    font-size: 0.8rem;
+  }
+  
+  /* Panel de usuario más pequeño */
+  .user-panel {
+    padding: 0.6rem 0;
+    font-size: 0.95rem;
+  }
+  
+  /* Header más compacto */
+  .header {
+    padding: 0.8rem 1rem;
+  }
+  
+  .icon {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .hamburger, .user-icon, .wallet-icon {
+    width: 36px;
+    height: 36px;
+  }
+}
