@@ -36,23 +36,20 @@ body {
   stroke: #fff;
   fill: none;
 }
-.hamburger .icon path {
+.hamburger .icon line {
   transition: all 0.3s ease;
   transform-origin: center;
 }
-.hamburger:hover {
-  background-color: rgba(255,255,255,0.1);
-}
 
 /* Animación del hamburger cuando está abierto - líneas se convierten en X */
-.hamburger.active .icon path:nth-child(1) {
+.hamburger.active .icon line:nth-child(1) {
   transform: translateY(6px) rotate(45deg);
 }
-.hamburger.active .icon path:nth-child(2) {
+.hamburger.active .icon line:nth-child(2) {
   opacity: 0;
   transform: scale(0);
 }
-.hamburger.active .icon path:nth-child(3) {
+.hamburger.active .icon line:nth-child(3) {
   transform: translateY(-6px) rotate(-45deg);
 }
 
@@ -1126,7 +1123,7 @@ body {
   .userstable {
     min-width: 100%;
     font-size: 0.75rem;
-    width: 100%;
+    width:100%;
   }
 
   .users-table th,

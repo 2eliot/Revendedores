@@ -662,14 +662,14 @@
         if (data.success) {
           const prices = data.prices[gameType] || {};
           const className = gameType === 'freefire_latam' ? 'price-input-ff' : 'price-input-bs';
-          
+
           document.querySelectorAll(`.${className}`).forEach(input => {
             const option = input.getAttribute('data-option');
             if (prices[option]) {
               input.value = prices[option];
             }
           });
-          
+
           if (showAlert) {
             alert(`Precios de ${gameType === 'freefire_latam' ? 'Free Fire Latam' : 'Block Striker'} cargados`);
           }
@@ -692,13 +692,13 @@
       document.querySelectorAll('.price-input-ff').forEach(input => {
         const option = input.getAttribute('data-option');
         const value = parseFloat(input.value);
-        
+
         if (isNaN(value) || value < 0) {
           alert(`Precio inválido para la opción ${option}`);
           hasError = true;
           return;
         }
-        
+
         prices[option] = value;
       });
 
@@ -733,13 +733,13 @@
       document.querySelectorAll('.price-input-bs').forEach(input => {
         const option = input.getAttribute('data-option');
         const value = parseFloat(input.value);
-        
+
         if (isNaN(value) || value < 0) {
           alert(`Precio inválido para la opción ${option}`);
           hasError = true;
           return;
         }
-        
+
         prices[option] = value;
       });
 
