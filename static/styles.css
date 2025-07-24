@@ -974,6 +974,11 @@ body {
     padding: 0.8rem 1rem;
   }
   
+  /* Historial con más espaciado lateral en móviles */
+  .transactions {
+    padding: 1.5rem 1.5rem;
+  }
+  
   .icon {
     width: 24px;
     height: 24px;
