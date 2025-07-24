@@ -736,7 +736,7 @@ def save_game_prices(prices):
 # Endpoint de verificación de disponibilidad removido
 
 @app.route('/admin/get-game-prices')
-@admin_required
+@login_required
 def get_game_prices():
     """Obtener precios actuales de los juegos"""
     try:

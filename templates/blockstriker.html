@@ -110,19 +110,57 @@
   </div>
 
   <script>
-    // Mapeo de valores para Block Striker (independiente de otros juegos)
-    const blockStrikerPrices = {
-      '1': 0.82,   // 100+16 🪙
-      '2': 2.60,   // 300+52 🪙
-      '3': 4.30,   // 500+94 🪙
-      '4': 8.65,   // 1,000+210 🪙
-      '5': 17.30,  // 2,000+486 🪙
-      '6': 43.15,  // 5,000+1,380 🪙
-      '7': 3.50,   // Pase Elite 🎖️
-      '8': 8.00,   // Pase Elite (Plus) 🎖️
-      '9': 1.85,   // Pase de Mejora 🔫
+    // Mapeo de precios - se carga dinámicamente desde el servidor
+    let priceMapping = {
+      '1': 0.82,  // 100+16 🪙 - valores por defecto
+      '2': 2.60,  // 300+52 🪙  
+      '3': 4.30,  // 500+94 🪙
+      '4': 8.65,  // 1,000+210 🪙
+      '5': 17.30, // 2,000+486 🪙
+      '6': 43.15, // 5,000+1,380 🪙
+      '7': 3.50,  // Pase Elite
+      '8': 8.00,  // Pase Elite Plus
+      '9': 1.85,   // Pase de Mejora
       '10': 0.50   // Cofre Camuflaje Ultra 💼
     };
+
+    // Cargar precios actuales del servidor
+    async function loadCurrentPrices() {
+      try {
+        const response = await fetch('/admin/get-game-prices');
+        const data = await response.json();
+
+        if (data.success && data.prices && data.prices.block_striker) {
+          // Actualizar el mapeo de precios
+          priceMapping = data.prices.block_striker;
+
+          // Actualizar los textos de las opciones del select
+          updateSelectOptions();
+        }
+      } catch (error) {
+        console.log('Error cargando precios, usando valores por defecto');
+      }
+    }
+
+    // Actualizar las opciones del select con los precios actuales
+    function updateSelectOptions() {
+      const select = document.getElementById('amount-select');
+      const options = select.querySelectorAll('option[value]');
+
+      options.forEach(option => {
+        const value = option.value;
+        const price = priceMapping[value];
+
+        if (price) {
+          // Actualizar el texto de la opción con el precio actual
+          const originalText = option.textContent.split(' / $')[0]; // Mantener la parte antes del precio
+          option.textContent = `${originalText} / $${price}`;
+        }
+      });
+    }
+
+    // Cargar precios al cargar la página
+    document.addEventListener('DOMContentLoaded', loadCurrentPrices);
 
     async function handleRecharge(event) {
       event.preventDefault();
@@ -142,7 +180,7 @@
       }
 
       const optionValue = select.value; // Valor 1-9
-      const realPrice = blockStrikerPrices[optionValue]; // Precio real en USD
+      const realPrice = priceMapping[optionValue]; // Precio real en USD
 
       showMessage('Procesando recarga de Block Striker...', 'info');
 

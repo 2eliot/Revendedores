@@ -118,9 +118,9 @@
   </div>
 
   <script>
-    // Mapeo correcto de valores a precios reales
-    const priceMapping = {
-      '1': 0.66,  // 110 💎
+    // Mapeo de precios - se carga dinámicamente desde el servidor
+    let priceMapping = {
+      '1': 0.66,  // 110 💎 - valores por defecto
       '2': 1.99,  // 341 💎  
       '3': 3.35,  // 572 💎
       '4': 6.70,  // 1.166 💎
@@ -130,6 +130,44 @@
       '8': 1.40,  // Tarjeta semanal
       '9': 6.50   // Tarjeta mensual
     };
+
+    // Cargar precios actuales del servidor
+    async function loadCurrentPrices() {
+      try {
+        const response = await fetch('/admin/get-game-prices');
+        const data = await response.json();
+        
+        if (data.success && data.prices && data.prices.freefire_latam) {
+          // Actualizar el mapeo de precios
+          priceMapping = data.prices.freefire_latam;
+          
+          // Actualizar los textos de las opciones del select
+          updateSelectOptions();
+        }
+      } catch (error) {
+        console.log('Error cargando precios, usando valores por defecto');
+      }
+    }
+
+    // Actualizar las opciones del select con los precios actuales
+    function updateSelectOptions() {
+      const select = document.getElementById('amount-select');
+      const options = select.querySelectorAll('option[value]');
+      
+      options.forEach(option => {
+        const value = option.value;
+        const price = priceMapping[value];
+        
+        if (price) {
+          // Actualizar el texto de la opción con el precio actual
+          const originalText = option.textContent.split(' / $')[0]; // Mantener la parte antes del precio
+          option.textContent = `${originalText} / $${price}`;
+        }
+      });
+    }
+
+    // Cargar precios al cargar la página
+    document.addEventListener('DOMContentLoaded', loadCurrentPrices);
 
     async function handleRecharge(event) {
       event.preventDefault();
