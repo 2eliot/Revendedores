@@ -388,13 +388,52 @@ class Database:
 
     def update_block_striker_transaction_status(self, transaction_id, new_status):
         """Actualizar el status de una transacción de Block Striker"""
-        query = """
+        # Primero obtener la transacción para saber el monto y usuario
+        get_transaction_query = """
+        SELECT user_id, amount FROM transactions 
+        WHERE transaction_id = %s AND game_type = 'Block Striker'
+        """
+        transaction_result = self.execute_query(get_transaction_query, (transaction_id,))
+        
+        if not transaction_result:
+            return None
+            
+        transaction = transaction_result[0]
+        user_id = transaction['user_id']
+        amount = float(transaction['amount'])
+        
+        # Actualizar el status
+        update_query = """
         UPDATE transactions 
         SET status = %s 
         WHERE transaction_id = %s AND game_type = 'Block Striker'
         RETURNING *
         """
-        return self.execute_query(query, (new_status, transaction_id))
+        result = self.execute_query(update_query, (new_status, transaction_id))
+        
+        # Si se rechaza la transacción, devolver el dinero al usuario
+        if result and new_status == 'rechazado' and amount < 0:
+            # amount es negativo, así que sumamos su valor absoluto para devolver el dinero
+            refund_amount = abs(amount)
+            
+            # Actualizar el saldo del usuario
+            update_balance_query = """
+            UPDATE users 
+            SET balance = balance + %s 
+            WHERE user_id = %s
+            """
+            balance_result = self.execute_query(update_balance_query, (refund_amount, user_id))
+            
+            # Registrar la transacción de reembolso
+            if balance_result is not None:
+                self.insert_transaction(
+                    user_id=user_id,
+                    pin="REEMBOLSO",
+                    transaction_id=f"RF{user_id[-3:]}{int(__import__('time').time()) % 10000}",
+                    amount=refund_amount
+                )
+        
+        return result
 
     def cleanup_old_transactions(self, user_id, max_transactions=30):
         """Eliminar transacciones antiguas manteniendo solo las últimas 30 por usuario"""
