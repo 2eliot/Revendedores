@@ -705,6 +705,8 @@
       if (hasError) return;
 
       try {
+        console.log('Enviando precios:', prices);
+        
         const response = await fetch('/admin/update-game-prices', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
@@ -715,9 +717,34 @@
         });
 
         const data = await response.json();
+        console.log('Respuesta del servidor:', data);
 
         if (data.success) {
-          alert('✅ Precios de Free Fire Latam actualizados exitosamente');
+          // Verificar que los precios se guardaron correctamente
+          setTimeout(async () => {
+            const verifyResponse = await fetch('/admin/get-game-prices');
+            const verifyData = await verifyResponse.json();
+            
+            if (verifyData.success && verifyData.prices && verifyData.prices.freefire_latam) {
+              const savedPrices = verifyData.prices.freefire_latam;
+              let allMatch = true;
+              
+              for (const [option, price] of Object.entries(prices)) {
+                if (Math.abs(savedPrices[option] - price) > 0.01) {
+                  allMatch = false;
+                  break;
+                }
+              }
+              
+              if (allMatch) {
+                alert('✅ Precios de Free Fire Latam actualizados y verificados exitosamente');
+              } else {
+                alert('⚠️ Los precios se guardaron pero la verificación falló. Por favor recarga la página.');
+              }
+            } else {
+              alert('⚠️ No se pudo verificar que los precios se guardaron correctamente');
+            }
+          }, 500);
         } else {
           alert('Error: ' + data.error);
         }
@@ -746,6 +773,8 @@
       if (hasError) return;
 
       try {
+        console.log('Enviando precios Block Striker:', prices);
+        
         const response = await fetch('/admin/update-game-prices', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
@@ -756,9 +785,34 @@
         });
 
         const data = await response.json();
+        console.log('Respuesta del servidor:', data);
 
         if (data.success) {
-          alert('✅ Precios de Block Striker actualizados exitosamente');
+          // Verificar que los precios se guardaron correctamente
+          setTimeout(async () => {
+            const verifyResponse = await fetch('/admin/get-game-prices');
+            const verifyData = await verifyResponse.json();
+            
+            if (verifyData.success && verifyData.prices && verifyData.prices.block_striker) {
+              const savedPrices = verifyData.prices.block_striker;
+              let allMatch = true;
+              
+              for (const [option, price] of Object.entries(prices)) {
+                if (Math.abs(savedPrices[option] - price) > 0.01) {
+                  allMatch = false;
+                  break;
+                }
+              }
+              
+              if (allMatch) {
+                alert('✅ Precios de Block Striker actualizados y verificados exitosamente');
+              } else {
+                alert('⚠️ Los precios se guardaron pero la verificación falló. Por favor recarga la página.');
+              }
+            } else {
+              alert('⚠️ No se pudo verificar que los precios se guardaron correctamente');
+            }
+          }, 500);
         } else {
           alert('Error: ' + data.error);
         }

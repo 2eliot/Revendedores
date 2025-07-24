@@ -708,10 +708,32 @@ def load_game_prices():
     """Cargar precios de los juegos desde archivo"""
     try:
         import json
-        with open('game_prices.json', 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except FileNotFoundError:
-        # Precios por defecto
+        import os
+        
+        if os.path.exists('game_prices.json'):
+            with open('game_prices.json', 'r', encoding='utf-8') as f:
+                loaded_prices = json.load(f)
+                print(f"📄 Precios cargados desde archivo: {loaded_prices}")
+                return loaded_prices
+        else:
+            print("⚠️ Archivo game_prices.json no existe, usando precios por defecto")
+            # Crear archivo con precios por defecto
+            default_prices = {
+                "freefire_latam": {
+                    "1": 0.66, "2": 1.99, "3": 3.35, "4": 6.70, "5": 12.70,
+                    "6": 29.50, "7": 0.40, "8": 1.40, "9": 6.50
+                },
+                "block_striker": {
+                    "1": 0.82, "2": 2.60, "3": 4.30, "4": 8.65, "5": 17.30,
+                    "6": 43.15, "7": 3.50, "8": 8.00, "9": 1.85
+                }
+            }
+            save_game_prices(default_prices)
+            return default_prices
+            
+    except Exception as e:
+        print(f"❌ Error cargando precios: {e}")
+        # Precios por defecto como fallback
         return {
             "freefire_latam": {
                 "1": 0.66, "2": 1.99, "3": 3.35, "4": 6.70, "5": 12.70,
@@ -727,11 +749,39 @@ def save_game_prices(prices):
     """Guardar precios de los juegos en archivo"""
     try:
         import json
+        import os
+        
+        # Crear backup del archivo actual si existe
+        if os.path.exists('game_prices.json'):
+            try:
+                import shutil
+                shutil.copy('game_prices.json', 'game_prices_backup.json')
+            except:
+                pass
+        
+        # Guardar los nuevos precios
         with open('game_prices.json', 'w', encoding='utf-8') as f:
-            json.dump(prices, f, indent=2)
-        return True
+            json.dump(prices, f, indent=2, ensure_ascii=False)
+        
+        # Verificar que el archivo se escribió correctamente
+        with open('game_prices.json', 'r', encoding='utf-8') as f:
+            saved_data = json.load(f)
+            if saved_data == prices:
+                print(f"✅ Precios guardados exitosamente en game_prices.json")
+                return True
+            else:
+                print(f"❌ Error: Los precios guardados no coinciden")
+                return False
+                
     except Exception as e:
-        print(f"Error guardando precios: {e}")
+        print(f"❌ Error guardando precios: {e}")
+        # Intentar restaurar backup si existe
+        try:
+            if os.path.exists('game_prices_backup.json'):
+                shutil.copy('game_prices_backup.json', 'game_prices.json')
+                print("🔄 Backup restaurado")
+        except:
+            pass
         return False
 
 # Endpoint de verificación de disponibilidad removido
@@ -755,6 +805,8 @@ def update_game_prices():
         game_type = data.get('game_type')
         new_prices = data.get('prices')
 
+        print(f"🔄 Actualizando precios de {game_type}: {new_prices}")
+
         if not game_type or not new_prices:
             return jsonify({"error": "Tipo de juego y precios son requeridos"}), 400
 
@@ -768,22 +820,34 @@ def update_game_prices():
 
         # Cargar precios actuales
         current_prices = load_game_prices()
+        print(f"📄 Precios actuales cargados: {current_prices}")
 
         # Actualizar precios del juego específico
         current_prices[game_type] = {}
         for key, price in new_prices.items():
             current_prices[game_type][str(key)] = float(price)
 
+        print(f"📝 Precios a guardar: {current_prices}")
+
         # Guardar precios actualizados
         if save_game_prices(current_prices):
-            return jsonify({
-                "success": True, 
-                "message": f"Precios de {game_type} actualizados exitosamente"
-            })
+            # Verificar que los precios se guardaron correctamente releyendo el archivo
+            saved_prices = load_game_prices()
+            if saved_prices.get(game_type) == current_prices[game_type]:
+                print(f"✅ Verificación exitosa: Precios de {game_type} persistidos correctamente")
+                return jsonify({
+                    "success": True, 
+                    "message": f"Precios de {game_type} actualizados y verificados exitosamente",
+                    "saved_prices": saved_prices[game_type]
+                })
+            else:
+                print(f"❌ Error de verificación: Los precios no persistieron correctamente")
+                return jsonify({"error": "Error: Los precios no se guardaron correctamente"}), 500
         else:
-            return jsonify({"error": "Error guardando precios"}), 500
+            return jsonify({"error": "Error guardando precios en archivo"}), 500
 
     except Exception as e:
+        print(f"❌ Error en update_game_prices: {str(e)}")
         return jsonify({"error": f"Error actualizando precios: {str(e)}"}), 500
 
 # Ruta para servir el service worker
