@@ -111,8 +111,6 @@ option:disabled {
 
 /* Estilos para el panel de usuario */
 .user-panel p {
-  color: #28a745 !important;
-  font-weight: bold;
   font-size: 1.1rem;
 }
 
