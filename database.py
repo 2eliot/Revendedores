@@ -2,6 +2,7 @@ import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
+import urllib.parse
 
 load_dotenv()
 
@@ -11,21 +12,38 @@ class Database:
         self.cursor = None
 
     def connect(self):
+        """Establecer conexión con la base de datos"""
         try:
-            # Usar DATABASE_URL de los secretos de Replit
-            database_url = os.environ.get('DATABASE_URL')
+            # Primero intentar usar DATABASE_URL (para Render)
+            database_url = os.getenv('DATABASE_URL')
+
             if database_url:
-                self.connection = psycopg2.connect(database_url)
-            else:
-                # Fallback a variables individuales
+                # Parsear la URL de la base de datos
+                url = urllib.parse.urlparse(database_url)
                 self.connection = psycopg2.connect(
-                    host=os.environ.get('DB_HOST'),
-                    database=os.environ.get('DB_NAME'),
-                    user=os.environ.get('DB_USER'),
-                    password=os.environ.get('DB_PASSWORD'),
-                    port=os.environ.get('DB_PORT', '5432')
+                    host=url.hostname,
+                    database=url.path[1:],  # Remover el '/' inicial
+                    user=url.username,
+                    password=url.password,
+                    port=url.port,
+                    cursor_factory=RealDictCursor
                 )
-            self.cursor = self.connection.cursor(cursor_factory=RealDictCursor)
+            else:
+                # Usar credenciales individuales (para desarrollo local)
+                host = os.getenv('DB_HOST', 'localhost')
+                database = os.getenv('DB_NAME', 'flask_app')
+                user = os.getenv('DB_USER', 'postgres')
+                password = os.getenv('DB_PASSWORD', '')
+                port = os.getenv('DB_PORT', '5432')
+
+                self.connection = psycopg2.connect(
+                    host=host,
+                    database=database,
+                    user=user,
+                    password=password,
+                    port=port,
+                    cursor_factory=RealDictCursor
+                )
             return True
         except Exception as e:
             print(f"Error conectando a la base de datos: {e}")
@@ -355,7 +373,7 @@ class Database:
                 return self._process_freefire_latam_response(json_response, amount_value)
         except:
             pass
-        
+
         print(f"[FREEFIRE LATAM] No se pudo procesar respuesta: {response_data}")
         return None
 
@@ -394,19 +412,19 @@ class Database:
         WHERE transaction_id = %s AND game_type = 'Block Striker'
         """
         transaction_result = self.execute_query(get_transaction_query, (transaction_id,))
-        
+
         if not transaction_result:
             return None
-            
+
         transaction = transaction_result[0]
         user_id = transaction['user_id']
         amount = float(transaction['amount'])
-        
+
         # Si se rechaza la transacción, devolver el dinero al usuario ANTES de actualizar el status
         if new_status == 'rechazado' and amount < 0:
             # amount es negativo, así que sumamos su valor absoluto para devolver el dinero
             refund_amount = abs(amount)
-            
+
             # Actualizar el saldo del usuario
             update_balance_query = """
             UPDATE users 
@@ -414,11 +432,11 @@ class Database:
             WHERE user_id = %s
             """
             balance_result = self.execute_query(update_balance_query, (refund_amount, user_id))
-            
+
             if balance_result is None:
                 print(f"Error devolviendo dinero al usuario {user_id}")
                 return None
-        
+
         # Actualizar el status de la transacción
         update_query = """
         UPDATE transactions 
@@ -427,7 +445,7 @@ class Database:
         RETURNING *
         """
         result = self.execute_query(update_query, (new_status, transaction_id))
-        
+
         return result
 
     def cleanup_old_transactions(self, user_id, max_transactions=30):
@@ -439,7 +457,7 @@ class Database:
 
             if count_result and count_result[0]['count'] > max_transactions:
                 transactions_to_delete = count_result[0]['count'] - max_transactions
-                
+
                 # Eliminar las transacciones más antiguas que excedan el límite
                 delete_query = """
                 DELETE FROM transactions 
@@ -454,7 +472,7 @@ class Database:
                 )
                 """
                 result = self.execute_query(delete_query, (user_id, user_id, transactions_to_delete))
-                
+
                 if result is not None:
                     print(f"[CLEANUP] Eliminadas {transactions_to_delete} transacciones antiguas del usuario {user_id}")
                     return True
@@ -463,7 +481,7 @@ class Database:
                     return False
 
             return True
-            
+
         except Exception as e:
             print(f"[CLEANUP] Error en cleanup_old_transactions: {e}")
             return False
