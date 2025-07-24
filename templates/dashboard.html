@@ -145,6 +145,20 @@
             {% endif %}
           </div>
           {% if transaction.game_type == 'Block Striker' %}
+          <div><strong>📦 Paquete:</strong> 
+            {% if transaction.option_value == 1 %}100+16 🪙 Monedas
+            {% elif transaction.option_value == 2 %}300+52 🪙 Monedas
+            {% elif transaction.option_value == 3 %}500+94 🪙 Monedas
+            {% elif transaction.option_value == 4 %}1,000+210 🪙 Monedas
+            {% elif transaction.option_value == 5 %}2,000+486 🪙 Monedas
+            {% elif transaction.option_value == 6 %}5,000+1,380 🪙 Monedas
+            {% elif transaction.option_value == 7 %}🎖️ Pase Elite
+            {% elif transaction.option_value == 8 %}🎖️ Pase Elite (Plus)
+            {% elif transaction.option_value == 9 %}🔫 Pase de Mejora
+            {% elif transaction.option_value == 10 %}💼 Cofre Camuflaje Ultra
+            {% else %}Paquete {{ transaction.option_value }}
+            {% endif %}
+          </div>
           <div><strong>🎮 Juego:</strong> Block Striker</div>
           {% endif %}
           {% if transaction.game_type == 'Block Striker' and transaction.status == 'procesando' and session.get('user_id') == 'ADMIN001' %}
