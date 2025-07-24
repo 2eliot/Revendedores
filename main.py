@@ -730,28 +730,18 @@ def save_game_prices(prices):
 @app.route('/freefire-latam/check-availability/<int:option_value>')
 @login_required
 def check_freefire_latam_availability(option_value):
-    """Verificar disponibilidad de PINs en la API de Free Fire Latam SIN CONSUMIR"""
+    """Verificar disponibilidad de PINs en la API de Free Fire Latam"""
     db = Database()
     if not db.connect():
         return jsonify({"error": "Error de conexión a la base de datos"}), 500
 
     try:
-        # Primero verificar si hay PINs locales disponibles
-        local_pin = db.get_available_pin_by_value(option_value)
-        if local_pin:
-            return jsonify({
-                "available": True,
-                "option_value": option_value,
-                "source": "local"
-            })
-
-        # Si no hay PINs locales, verificar disponibilidad en API sin consumir
-        api_available = db.check_freefire_latam_availability(option_value)
+        # Verificar disponibilidad solo en la API
+        pin_available = db.get_freefire_latam_pin(option_value)
         
         return jsonify({
-            "available": api_available,
-            "option_value": option_value,
-            "source": "api_check"
+            "available": pin_available is not None,
+            "option_value": option_value
         })
 
     finally:

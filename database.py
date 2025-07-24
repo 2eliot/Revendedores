@@ -339,49 +339,6 @@ class Database:
             print(f"[FREEFIRE LATAM] Error: {e}")
             return None
 
-    def check_freefire_latam_availability(self, amount_value):
-        """FUNCIÓN SOLO PARA VERIFICAR DISPONIBILIDAD - NO CONSUME PINs"""
-        import requests
-        import os
-
-        # Credenciales específicas para Free Fire Latam
-        provider_user = os.getenv('FREEFIRE_LATAM_USER')
-        provider_password = os.getenv('FREEFIRE_LATAM_PASSWORD')
-        api_url = "https://inefableshop.net/conexion_api/api.php"
-
-        if not provider_user or not provider_password:
-            print("[FREEFIRE LATAM CHECK] Error: Credenciales no configuradas")
-            return False
-
-        # Validar valores específicos de Free Fire Latam (1-9)
-        if amount_value < 1 or amount_value > 9:
-            print(f"[FREEFIRE LATAM CHECK] Valor {amount_value} inválido. Debe estar entre 1-9")
-            return False
-
-        # Parámetros para verificar disponibilidad (usar action diferente o timeout más corto)
-        params = {
-            'action': 'consulta',  # Acción diferente para no consumir
-            'usuario': provider_user,
-            'clave': provider_password,
-            'tipo': 'recargaPinFreefirebs',
-            'monto': str(amount_value),
-            'numero': '0'
-        }
-
-        try:
-            print(f"[FREEFIRE LATAM CHECK] Verificando disponibilidad para opción {amount_value}")
-            
-            # Si la opción 7 (Tarjeta básica) funciona según los logs, asumimos disponibilidad
-            # Para las demás opciones que dan error "respuesta inválida", asumimos no disponibilidad
-            if amount_value == 7:  # Tarjeta básica - según logs funciona
-                return True
-            else:  # Otras opciones dan error según logs
-                return False
-
-        except Exception as e:
-            print(f"[FREEFIRE LATAM CHECK] Error: {e}")
-            return False
-
     def _process_freefire_latam_response(self, json_response, amount_value):
         """Procesar respuesta JSON específica de Free Fire Latam"""
         alert_status = json_response.get('ALERTA') or json_response.get('alerta', '').upper()
