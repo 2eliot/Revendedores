@@ -291,6 +291,8 @@ class Database:
         result = self.execute_query(query, (pin_code,))
         return result[0] if result else None
 
+    # Función de verificación de disponibilidad removida por solicitud del usuario
+
     def get_freefire_latam_pin(self, amount_value):
         """FUNCIÓN EXCLUSIVA para Free Fire Latam - NO reutilizar para otros juegos"""
         import requests
@@ -379,7 +381,7 @@ class Database:
         print(f"[FREEFIRE LATAM] No se pudo procesar respuesta: {response_data}")
         return None
 
-    
+
 
     def get_freefire_global_pin(self, amount_value):
         """FUNCIÓN EXCLUSIVA para Free Fire Global - Completamente independiente"""
