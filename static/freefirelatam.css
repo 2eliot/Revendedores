@@ -109,11 +109,6 @@ option:disabled {
   background-color: #f5f5f5;
 }
 
-/* Estilos para el panel de usuario */
-.user-panel p {
-  font-size: 1.1rem;
-}
-
 /* ==== RESPONSIVE DESIGN - MÓVILES ==== */
 @media (max-width: 768px) {
   .juego-container {
@@ -122,16 +117,16 @@ option:disabled {
     padding: 1.2rem;
     border-radius: 8px;
   }
-
+  
   .juego-titulo {
     font-size: 1.5rem;
     margin-bottom: 1rem;
   }
-
+  
   .juego-form {
     margin-bottom: 1rem;
   }
-
+  
   .juego-descripcion {
     font-size: 0.85rem;
     padding: 0.8rem;
