@@ -100,7 +100,11 @@
         {% for transaction in transactions %}
           {% if transaction.pin != 'ADMIN' and transaction.pin != 'PIN' and 'BALANCE' not in transaction.transaction_id %}
         <li class="{{ 'admin-transaction' if transaction.pin == 'ADMIN' else '' }}"
-          <div><strong>ID:</strong> {{ transaction.id }}</div>
+          {% if transaction.game_type == 'Block Striker' %}
+          <div><strong>ID Jugador:</strong> {{ transaction.player_id }}</div>
+          {% else %}
+          <div><strong>ID Transacción:</strong> {{ transaction.transaction_id }}</div>
+          {% endif %}
           {% if session.get('user_id') == 'ADMIN001' %}
           <div><strong>Usuario:</strong> {{ transaction.user_id }} - {{ transaction.nombre }} {{ transaction.apellido }}</div>
           {% endif %}
@@ -138,9 +142,6 @@
           </div>
           {% if transaction.game_type == 'Block Striker' %}
           <div><strong>🎮 Juego:</strong> Block Striker</div>
-          {% if transaction.player_id %}
-          <div><strong>👤 ID Jugador:</strong> {{ transaction.player_id }}</div>
-          {% endif %}
           {% endif %}
           {% if transaction.game_type == 'Block Striker' and transaction.status == 'procesando' and session.get('user_id') == 'ADMIN001' %}
           <div class="block-striker-actions">
