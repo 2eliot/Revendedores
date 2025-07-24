@@ -491,3 +491,111 @@ class Database:
         except Exception as e:
             print(f"[CLEANUP] Error en cleanup_old_transactions: {e}")
             return False
+
+    def save_game_prices(self, game_type, prices):
+        """Guardar precios de un juego en la base de datos"""
+        try:
+            # Crear tabla si no existe
+            create_table_query = """
+            CREATE TABLE IF NOT EXISTS game_prices (
+                id SERIAL PRIMARY KEY,
+                game_type VARCHAR(50) NOT NULL,
+                option_key VARCHAR(10) NOT NULL,
+                price DECIMAL(10,2) NOT NULL,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(game_type, option_key)
+            )
+            """
+            self.execute_query(create_table_query)
+
+            # Eliminar precios existentes del juego
+            delete_query = "DELETE FROM game_prices WHERE game_type = %s"
+            self.execute_query(delete_query, (game_type,))
+
+            # Insertar nuevos precios
+            for option_key, price in prices.items():
+                insert_query = """
+                INSERT INTO game_prices (game_type, option_key, price) 
+                VALUES (%s, %s, %s)
+                """
+                self.execute_query(insert_query, (game_type, str(option_key), float(price)))
+
+            print(f"✅ Precios de {game_type} guardados en base de datos")
+            return True
+
+        except Exception as e:
+            print(f"❌ Error guardando precios en base de datos: {e}")
+            return False
+
+    def load_game_prices(self):
+        """Cargar precios de juegos desde la base de datos"""
+        try:
+            # Crear tabla si no existe
+            create_table_query = """
+            CREATE TABLE IF NOT EXISTS game_prices (
+                id SERIAL PRIMARY KEY,
+                game_type VARCHAR(50) NOT NULL,
+                option_key VARCHAR(10) NOT NULL,
+                price DECIMAL(10,2) NOT NULL,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(game_type, option_key)
+            )
+            """
+            self.execute_query(create_table_query)
+
+            # Cargar precios desde la base de datos
+            query = "SELECT game_type, option_key, price FROM game_prices ORDER BY game_type, option_key"
+            result = self.execute_query(query)
+
+            prices = {
+                "freefire_latam": {},
+                "block_striker": {}
+            }
+
+            if result:
+                for row in result:
+                    game_type = row['game_type']
+                    option_key = row['option_key']
+                    price = float(row['price'])
+                    
+                    if game_type not in prices:
+                        prices[game_type] = {}
+                    
+                    prices[game_type][option_key] = price
+
+            # Si no hay precios en la base de datos, usar valores por defecto
+            if not result or not any(prices.values()):
+                print("📄 No hay precios en base de datos, creando valores por defecto")
+                default_prices = {
+                    "freefire_latam": {
+                        "1": 0.66, "2": 1.99, "3": 3.35, "4": 6.70, "5": 12.70,
+                        "6": 29.50, "7": 0.40, "8": 1.40, "9": 6.50
+                    },
+                    "block_striker": {
+                        "1": 0.82, "2": 2.60, "3": 4.30, "4": 8.65, "5": 17.30,
+                        "6": 43.15, "7": 3.50, "8": 8.00, "9": 1.85
+                    }
+                }
+                
+                # Guardar precios por defecto en la base de datos
+                for game_type, game_prices in default_prices.items():
+                    self.save_game_prices(game_type, game_prices)
+                
+                return default_prices
+
+            print(f"📄 Precios cargados desde base de datos: {prices}")
+            return prices
+
+        except Exception as e:
+            print(f"❌ Error cargando precios desde base de datos: {e}")
+            # Retornar precios por defecto en caso de error
+            return {
+                "freefire_latam": {
+                    "1": 0.66, "2": 1.99, "3": 3.35, "4": 6.70, "5": 12.70,
+                    "6": 29.50, "7": 0.40, "8": 1.40, "9": 6.50
+                },
+                "block_striker": {
+                    "1": 0.82, "2": 2.60, "3": 4.30, "4": 8.65, "5": 17.30,
+                    "6": 43.15, "7": 3.50, "8": 8.00, "9": 1.85
+                }
+            }

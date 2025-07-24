@@ -705,35 +705,11 @@ def get_banner_message():
         return "🚨 IMPORTANTE: GameFan temporalmente fuera de servicio - No comprar PINs hasta nuevo aviso 🚨 Recargas de Block Striker requieren aprobación manual 🚨 Soporte disponible 24/7 para consultas 🚨"
 
 def load_game_prices():
-    """Cargar precios de los juegos desde archivo"""
-    try:
-        import json
-        import os
-        
-        if os.path.exists('game_prices.json'):
-            with open('game_prices.json', 'r', encoding='utf-8') as f:
-                loaded_prices = json.load(f)
-                print(f"📄 Precios cargados desde archivo: {loaded_prices}")
-                return loaded_prices
-        else:
-            print("⚠️ Archivo game_prices.json no existe, usando precios por defecto")
-            # Crear archivo con precios por defecto
-            default_prices = {
-                "freefire_latam": {
-                    "1": 0.66, "2": 1.99, "3": 3.35, "4": 6.70, "5": 12.70,
-                    "6": 29.50, "7": 0.40, "8": 1.40, "9": 6.50
-                },
-                "block_striker": {
-                    "1": 0.82, "2": 2.60, "3": 4.30, "4": 8.65, "5": 17.30,
-                    "6": 43.15, "7": 3.50, "8": 8.00, "9": 1.85
-                }
-            }
-            save_game_prices(default_prices)
-            return default_prices
-            
-    except Exception as e:
-        print(f"❌ Error cargando precios: {e}")
-        # Precios por defecto como fallback
+    """Cargar precios de los juegos desde la base de datos"""
+    db = Database()
+    if not db.connect():
+        print("❌ Error conectando a la base de datos para cargar precios")
+        # Retornar precios por defecto en caso de error
         return {
             "freefire_latam": {
                 "1": 0.66, "2": 1.99, "3": 3.35, "4": 6.70, "5": 12.70,
@@ -745,44 +721,23 @@ def load_game_prices():
             }
         }
 
-def save_game_prices(prices):
-    """Guardar precios de los juegos en archivo"""
     try:
-        import json
-        import os
-        
-        # Crear backup del archivo actual si existe
-        if os.path.exists('game_prices.json'):
-            try:
-                import shutil
-                shutil.copy('game_prices.json', 'game_prices_backup.json')
-            except:
-                pass
-        
-        # Guardar los nuevos precios
-        with open('game_prices.json', 'w', encoding='utf-8') as f:
-            json.dump(prices, f, indent=2, ensure_ascii=False)
-        
-        # Verificar que el archivo se escribió correctamente
-        with open('game_prices.json', 'r', encoding='utf-8') as f:
-            saved_data = json.load(f)
-            if saved_data == prices:
-                print(f"✅ Precios guardados exitosamente en game_prices.json")
-                return True
-            else:
-                print(f"❌ Error: Los precios guardados no coinciden")
-                return False
-                
-    except Exception as e:
-        print(f"❌ Error guardando precios: {e}")
-        # Intentar restaurar backup si existe
-        try:
-            if os.path.exists('game_prices_backup.json'):
-                shutil.copy('game_prices_backup.json', 'game_prices.json')
-                print("🔄 Backup restaurado")
-        except:
-            pass
+        prices = db.load_game_prices()
+        return prices
+    finally:
+        db.disconnect()
+
+def save_game_prices(game_type, prices):
+    """Guardar precios de un juego específico en la base de datos"""
+    db = Database()
+    if not db.connect():
+        print("❌ Error conectando a la base de datos para guardar precios")
         return False
+
+    try:
+        return db.save_game_prices(game_type, prices)
+    finally:
+        db.disconnect()
 
 # Endpoint de verificación de disponibilidad removido
 
@@ -818,23 +773,19 @@ def update_game_prices():
             if not isinstance(price, (int, float)) or price < 0:
                 return jsonify({"error": f"Precio inválido para opción {key}"}), 400
 
-        # Cargar precios actuales
-        current_prices = load_game_prices()
-        print(f"📄 Precios actuales cargados: {current_prices}")
-
-        # Actualizar precios del juego específico
-        current_prices[game_type] = {}
+        # Convertir precios a formato correcto
+        formatted_prices = {}
         for key, price in new_prices.items():
-            current_prices[game_type][str(key)] = float(price)
+            formatted_prices[str(key)] = float(price)
 
-        print(f"📝 Precios a guardar: {current_prices}")
+        print(f"📝 Precios a guardar en base de datos: {formatted_prices}")
 
-        # Guardar precios actualizados
-        if save_game_prices(current_prices):
-            # Verificar que los precios se guardaron correctamente releyendo el archivo
+        # Guardar precios en la base de datos
+        if save_game_prices(game_type, formatted_prices):
+            # Verificar que los precios se guardaron correctamente
             saved_prices = load_game_prices()
-            if saved_prices.get(game_type) == current_prices[game_type]:
-                print(f"✅ Verificación exitosa: Precios de {game_type} persistidos correctamente")
+            if saved_prices.get(game_type) == formatted_prices:
+                print(f"✅ Verificación exitosa: Precios de {game_type} persistidos correctamente en base de datos")
                 return jsonify({
                     "success": True, 
                     "message": f"Precios de {game_type} actualizados y verificados exitosamente",
@@ -844,7 +795,7 @@ def update_game_prices():
                 print(f"❌ Error de verificación: Los precios no persistieron correctamente")
                 return jsonify({"error": "Error: Los precios no se guardaron correctamente"}), 500
         else:
-            return jsonify({"error": "Error guardando precios en archivo"}), 500
+            return jsonify({"error": "Error guardando precios en base de datos"}), 500
 
     except Exception as e:
         print(f"❌ Error en update_game_prices: {str(e)}")
