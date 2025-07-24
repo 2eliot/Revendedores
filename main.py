@@ -285,6 +285,55 @@ def add_single_pin():
     finally:
         db.disconnect()
 
+@app.route('/freefire-latam/check-availability', methods=['POST'])
+@login_required
+def freefire_latam_check_availability():
+    """Verificar disponibilidad de PINs para Free Fire Latam"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "Datos de solicitud inválidos"}), 400
+
+        option_value = data.get('option_value')
+        if option_value is None:
+            return jsonify({"error": "Valor de opción requerido"}), 400
+
+        option_value = int(option_value)
+        
+        # Validación específica para Free Fire Latam (1-9)
+        if option_value < 1 or option_value > 9:
+            return jsonify({"error": "Opción inválida"}), 400
+
+        db = Database()
+        if not db.connect():
+            return jsonify({"available": False, "error": "Error de conexión a BD"}), 200
+
+        try:
+            # PASO 1: Verificar PINs locales
+            local_pin = db.get_available_pin_by_value(option_value)
+            if local_pin:
+                return jsonify({
+                    "available": True,
+                    "source": "local",
+                    "option_value": option_value
+                })
+
+            # PASO 2: Verificar disponibilidad en la API del proveedor
+            api_available = db.check_freefire_latam_api_availability(option_value)
+            
+            return jsonify({
+                "available": api_available,
+                "source": "api" if api_available else "none",
+                "option_value": option_value
+            })
+
+        finally:
+            db.disconnect()
+
+    except Exception as e:
+        print(f"Error verificando disponibilidad: {e}")
+        return jsonify({"available": False, "error": "Error interno"}), 200
+
 @app.route('/freefire-latam/validate-recharge', methods=['POST'])
 @login_required
 def freefire_latam_validate_recharge():
