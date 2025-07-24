@@ -117,7 +117,9 @@
             {% endif %}
           </div>
           {% else %}
+          {% if transaction.game_type != 'Block Striker' %}
           <div><strong>PIN/Código:</strong> {{ transaction.pin }}</div>
+          {% endif %}
           {% if transaction.player_id %}
           <div><strong>ID Jugador:</strong> {{ transaction.player_id }}</div>
           {% endif %}
