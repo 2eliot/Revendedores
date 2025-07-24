@@ -19,20 +19,60 @@ body > .juego-container {
 .juego-container {
   max-width: 480px;
   margin: auto;
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 15px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
   padding: 2rem;
+  border: 1px solid #e9ecef;
+  position: relative;
+  overflow: hidden;
+}
+
+.juego-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #ff6b35, #f7931e);
+  border-radius: 15px 15px 0 0;
 }
 
 .juego-titulo {
   font-size: 2rem;
   margin-bottom: 1.5rem;
-  color: #222;
+  color: #333;
+  font-weight: 700;
+  text-align: center;
+  background: linear-gradient(135deg, #ff6b35, #f7931e);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+  padding-bottom: 1rem;
+}
+
+.juego-titulo::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(90deg, #ff6b35, #f7931e);
+  border-radius: 2px;
 }
 
 .juego-form {
   margin-bottom: 1.5rem;
+  background: rgba(255, 255, 255, 0.7);
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
 
 .juego-form label {
@@ -67,10 +107,33 @@ body > .juego-container {
 
 .juego-descripcion {
   font-size: 0.95rem;
-  background-color: #f0f0f0;
-  padding: 1rem;
-  border-radius: 8px;
-  color: #444;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  padding: 1.5rem;
+  border-radius: 12px;
+  color: #495057;
+  border: 1px solid #dee2e6;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  position: relative;
+}
+
+.juego-descripcion h3 {
+  color: #333;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #ff6b35;
+  display: inline-block;
+}
+
+.juego-descripcion p {
+  margin-bottom: 0.8rem;
+  line-height: 1.5;
+}
+
+.juego-descripcion li {
+  margin-bottom: 0.5rem;
+  padding-left: 0.5rem;
+  line-height: 1.4;
 }
 
 .message {
