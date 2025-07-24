@@ -5,11 +5,15 @@ from database import Database
 import os
 from dotenv import load_dotenv
 from functools import wraps
+from datetime import timedelta
 
 load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY')
+
+# Configurar duración de sesión a 30 días
+app.permanent_session_lifetime = timedelta(days=30)
 
 def login_required(f):
     @wraps(f)
@@ -46,6 +50,7 @@ def login():
         admin_password = os.getenv('ADMIN_PASSWORD')
 
         if email == admin_user and password == admin_password:
+            session.permanent = True  # Hacer la sesión permanente
             session['user_id'] = 'ADMIN001'
             session['nombre'] = 'Admin'
             session['apellido'] = 'Usuario'
@@ -62,6 +67,7 @@ def login():
             user = db.get_user_by_email(email)
 
             if user and check_password_hash(user['password'], password):
+                session.permanent = True  # Hacer la sesión permanente
                 session['user_id'] = user['user_id']
                 session['nombre'] = user['nombre']
                 session['apellido'] = user['apellido']
