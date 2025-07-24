@@ -1,3 +1,7 @@
+The code modifies the update_block_striker_transaction_status function to handle rejected transactions by converting them to refunds instead of deleting them.
+```
+
+```python
 import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -355,7 +359,7 @@ class Database:
                 return self._process_freefire_latam_response(json_response, amount_value)
         except:
             pass
-        
+
         print(f"[FREEFIRE LATAM] No se pudo procesar respuesta: {response_data}")
         return None
 
@@ -394,46 +398,47 @@ class Database:
         WHERE transaction_id = %s AND game_type = 'Block Striker'
         """
         transaction_result = self.execute_query(get_transaction_query, (transaction_id,))
-        
+
         if not transaction_result:
             return None
-            
+
         transaction = transaction_result[0]
         user_id = transaction['user_id']
         amount = float(transaction['amount'])
-        
-        # Actualizar el status
-        update_query = """
-        UPDATE transactions 
-        SET status = %s 
-        WHERE transaction_id = %s AND game_type = 'Block Striker'
-        RETURNING *
-        """
-        result = self.execute_query(update_query, (new_status, transaction_id))
-        
-        # Si se rechaza la transacción, devolver el dinero al usuario
-        if result and new_status == 'rechazado' and amount < 0:
-            # amount es negativo, así que sumamos su valor absoluto para devolver el dinero
-            refund_amount = abs(amount)
-            
-            # Actualizar el saldo del usuario
-            update_balance_query = """
-            UPDATE users 
-            SET balance = balance + %s 
-            WHERE user_id = %s
+
+        if new_status == 'rechazado':
+            # Si se rechaza, devolver el dinero y convertir en reembolso
+            if amount < 0:  # Solo si es una compra (monto negativo)
+                refund_amount = abs(amount)
+
+                # Actualizar el saldo del usuario
+                update_balance_query = """
+                UPDATE users 
+                SET balance = balance + %s 
+                WHERE user_id = %s
+                """
+                balance_result = self.execute_query(update_balance_query, (refund_amount, user_id))
+
+                if balance_result is not None:
+                    # Convertir la transacción en reembolso en lugar de eliminarla
+                    update_refund_query = """
+                    UPDATE transactions 
+                    SET pin = 'REEMBOLSO', amount = %s, status = %s
+                    WHERE transaction_id = %s AND game_type = 'Block Striker'
+                    RETURNING *
+                    """
+                    return self.execute_query(update_refund_query, (refund_amount, new_status, transaction_id))
+
+            return None
+        else:
+            # Para aprobar o mantener en procesando, solo actualizar el status
+            update_query = """
+            UPDATE transactions 
+            SET status = %s 
+            WHERE transaction_id = %s AND game_type = 'Block Striker'
+            RETURNING *
             """
-            balance_result = self.execute_query(update_balance_query, (refund_amount, user_id))
-            
-            # Registrar la transacción de reembolso
-            if balance_result is not None:
-                self.insert_transaction(
-                    user_id=user_id,
-                    pin="REEMBOLSO",
-                    transaction_id=f"RF{user_id[-3:]}{int(__import__('time').time()) % 10000}",
-                    amount=refund_amount
-                )
-        
-        return result
+            return self.execute_query(update_query, (new_status, transaction_id))
 
     def cleanup_old_transactions(self, user_id, max_transactions=30):
         """Eliminar transacciones antiguas manteniendo solo las últimas 30 por usuario"""
@@ -444,7 +449,7 @@ class Database:
 
             if count_result and count_result[0]['count'] > max_transactions:
                 transactions_to_delete = count_result[0]['count'] - max_transactions
-                
+
                 # Eliminar las transacciones más antiguas que excedan el límite
                 delete_query = """
                 DELETE FROM transactions 
@@ -459,7 +464,7 @@ class Database:
                 )
                 """
                 result = self.execute_query(delete_query, (user_id, user_id, transactions_to_delete))
-                
+
                 if result is not None:
                     print(f"[CLEANUP] Eliminadas {transactions_to_delete} transacciones antiguas del usuario {user_id}")
                     return True
@@ -468,7 +473,7 @@ class Database:
                     return False
 
             return True
-            
+
         except Exception as e:
             print(f"[CLEANUP] Error en cleanup_old_transactions: {e}")
             return False
