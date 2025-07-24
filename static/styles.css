@@ -257,7 +257,6 @@ body {
   border-radius: 12px;
   text-align: left;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
 }
@@ -271,12 +270,6 @@ body {
   height: 3px;
   background: linear-gradient(90deg, #28a745, #20c997);
   border-radius: 12px 12px 0 0;
-}
-
-.transaction-list li:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
-  border-color: #28a745;
 }
 
 .transaction-list li div {
