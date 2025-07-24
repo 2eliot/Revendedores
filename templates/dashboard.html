@@ -106,7 +106,7 @@
           <div><strong>ID Transacción:</strong> {{ transaction.transaction_id }}</div>
           {% endif %}
           {% if session.get('user_id') == 'ADMIN001' %}
-          <div><strong>Usuario:</strong> {{ transaction.user_id }} - {{ transaction.nombre }} {{ transaction.apellido }}</div>
+          <div><strong>Usuario:</strong> {{ transaction.nombre }} {{ transaction.apellido }}</div>
           {% endif %}
           {% if transaction.pin == 'ADMIN' %}
           <div><strong>Tipo:</strong> 
