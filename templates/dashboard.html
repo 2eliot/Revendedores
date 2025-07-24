@@ -140,6 +140,8 @@
               {% elif transaction.status == 'rechazado' %}
                 <span class="status-badge rejected">❌ Rechazado</span>
               {% endif %}
+            {% elif transaction.pin != 'ADMIN' and transaction.amount < 0 %}
+              <span class="status-badge approved">✅ Aprobado</span>
             {% endif %}
           </div>
           {% if transaction.game_type == 'Block Striker' %}
