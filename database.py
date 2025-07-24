@@ -402,17 +402,8 @@ class Database:
         user_id = transaction['user_id']
         amount = float(transaction['amount'])
         
-        # Actualizar el status
-        update_query = """
-        UPDATE transactions 
-        SET status = %s 
-        WHERE transaction_id = %s AND game_type = 'Block Striker'
-        RETURNING *
-        """
-        result = self.execute_query(update_query, (new_status, transaction_id))
-        
-        # Si se rechaza la transacción, devolver el dinero al usuario
-        if result and new_status == 'rechazado' and amount < 0:
+        # Si se rechaza la transacción, devolver el dinero al usuario ANTES de actualizar el status
+        if new_status == 'rechazado' and amount < 0:
             # amount es negativo, así que sumamos su valor absoluto para devolver el dinero
             refund_amount = abs(amount)
             
@@ -424,14 +415,18 @@ class Database:
             """
             balance_result = self.execute_query(update_balance_query, (refund_amount, user_id))
             
-            # Registrar la transacción de reembolso
-            if balance_result is not None:
-                self.insert_transaction(
-                    user_id=user_id,
-                    pin="REEMBOLSO",
-                    transaction_id=f"RF{user_id[-3:]}{int(__import__('time').time()) % 10000}",
-                    amount=refund_amount
-                )
+            if balance_result is None:
+                print(f"Error devolviendo dinero al usuario {user_id}")
+                return None
+        
+        # Actualizar el status de la transacción
+        update_query = """
+        UPDATE transactions 
+        SET status = %s 
+        WHERE transaction_id = %s AND game_type = 'Block Striker'
+        RETURNING *
+        """
+        result = self.execute_query(update_query, (new_status, transaction_id))
         
         return result
 
