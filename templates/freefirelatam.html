@@ -209,7 +209,11 @@
       document.getElementById("user-box").classList.toggle("visible");
     }
     function toggleMenu() {
-      document.getElementById("menu-juegos").classList.toggle("visible");
+      const menu = document.getElementById("menu-juegos");
+      const hamburger = document.querySelector(".hamburger");
+      
+      menu.classList.toggle("visible");
+      hamburger.classList.toggle("active");
     }
     function toggleWalletBox() {
       document.getElementById("wallet-box").classList.toggle("visible");
@@ -321,6 +325,7 @@
       
       if (!isMenuIcon && menuJuegos.classList.contains('visible')) {
         menuJuegos.classList.remove('visible');
+        document.querySelector('.hamburger').classList.remove('active');
       }
       
       if (!isWalletIcon && walletBox.classList.contains('visible')) {
