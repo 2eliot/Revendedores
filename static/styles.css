@@ -249,16 +249,56 @@ body {
   padding: 0;
 }
 .transaction-list li {
-  background-color: #fff;
-  border: 1px solid #ccc;
-  margin: 0.5rem auto;
-  max-width: 400px;
-  padding: 0.75rem;
-  border-radius: 5px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border: 1px solid #e9ecef;
+  margin: 0.8rem auto;
+  max-width: 420px;
+  padding: 1.2rem;
+  border-radius: 12px;
   text-align: left;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
+
+.transaction-list li::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #28a745, #20c997);
+  border-radius: 12px 12px 0 0;
+}
+
+.transaction-list li:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+  border-color: #28a745;
+}
+
 .transaction-list li div {
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.6rem;
+  padding: 0.2rem 0;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.transaction-list li div:last-child {
+  margin-bottom: 0;
+  padding-top: 0.5rem;
+  border-top: 1px solid #f0f0f0;
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+.transaction-list li div strong {
+  color: #495057;
+  font-weight: 600;
+  display: inline-block;
+  min-width: 100px;
 }
 .pagination {
   margin-top: 1rem;
@@ -346,27 +386,52 @@ body {
 
 /* ==== TRANSACCIONES ADMINISTRATIVAS ==== */
 .admin-transaction {
+  background: linear-gradient(135deg, #f8fff9 0%, #e8f5e8 100%);
   border-left: 4px solid #28a745;
-  background-color: #f8fff9;
+  position: relative;
+}
+
+.admin-transaction::before {
+  background: linear-gradient(90deg, #28a745, #20c997);
+}
+
+.admin-transaction::after {
+  content: '🛡️';
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: 1.2rem;
+  opacity: 0.6;
 }
 
 .admin-badge {
-  background-color: #28a745;
+  background: linear-gradient(135deg, #28a745, #20c997);
   color: white;
-  padding: 0.2rem 0.5rem;
-  border-radius: 12px;
+  padding: 0.3rem 0.8rem;
+  border-radius: 15px;
   font-size: 0.8rem;
-  font-weight: bold;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+  display: inline-block;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .positive-amount {
   color: #28a745;
-  font-weight: bold;
+  font-weight: 700;
+  background: rgba(40, 167, 69, 0.1);
+  padding: 0.2rem 0.5rem;
+  border-radius: 8px;
+  border: 1px solid rgba(40, 167, 69, 0.2);
 }
 
 .negative-amount {
   color: #dc3545;
-  font-weight: bold;
+  font-weight: 700;
+  background: rgba(220, 53, 69, 0.1);
+  padding: 0.2rem 0.5rem;
+  border-radius: 8px;
+  border: 1px solid rgba(220, 53, 69, 0.2);
 }
 
 /* ==== PANEL DE ADMINISTRADOR ==== */
@@ -676,26 +741,32 @@ body {
 /* Estilos para Block Striker status */
 .status-badge {
   display: inline-block;
-  padding: 0.2rem 0.5rem;
-  border-radius: 12px;
+  padding: 0.3rem 0.8rem;
+  border-radius: 15px;
   font-size: 0.8rem;
-  font-weight: 500;
+  font-weight: 600;
   margin-left: 0.5rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .status-badge.processing {
-  background-color: #fff3cd;
+  background: linear-gradient(135deg, #fff3cd, #ffeaa7);
   color: #856404;
+  border: 1px solid #f39c12;
 }
 
 .status-badge.approved {
-  background-color: #d4edda;
+  background: linear-gradient(135deg, #d4edda, #a8e6cf);
   color: #155724;
+  border: 1px solid #28a745;
 }
 
 .status-badge.rejected {
-  background-color: #f8d7da;
+  background: linear-gradient(135deg, #f8d7da, #ff7675);
   color: #721c24;
+  border: 1px solid #dc3545;
 }
 
 .block-striker-actions {
