@@ -773,6 +773,56 @@ def update_game_prices():
     except Exception as e:
         return jsonify({"error": f"Error actualizando precios: {str(e)}"}), 500
 
+@app.route('/freefire-latam/check-availability', methods=['GET'])
+@login_required
+def check_freefire_latam_availability():
+    """Verificar disponibilidad de PINs de Free Fire Latam usando la API"""
+    db = Database()
+    if not db.connect():
+        return jsonify({"error": "Error de conexión a la base de datos"}), 500
+
+    try:
+        availability_status = {}
+        
+        # Verificar cada opción (1-9)
+        for option in range(1, 10):
+            # Primero verificar PINs locales
+            local_pin = db.get_available_pin_by_value(option)
+            
+            if local_pin:
+                availability_status[str(option)] = {
+                    'available': True,
+                    'source': 'local',
+                    'status_icon': '✅'
+                }
+            else:
+                # Verificar con la API del proveedor
+                api_availability = db.check_freefire_latam_api_availability(option)
+                
+                if api_availability:
+                    availability_status[str(option)] = {
+                        'available': True,
+                        'source': 'api',
+                        'status_icon': '✅'
+                    }
+                else:
+                    availability_status[str(option)] = {
+                        'available': False,
+                        'source': 'none',
+                        'status_icon': '❌'
+                    }
+
+        return jsonify({
+            "success": True,
+            "availability": availability_status
+        })
+
+    except Exception as e:
+        print(f"Error verificando disponibilidad: {e}")
+        return jsonify({"error": "Error verificando disponibilidad"}), 500
+    finally:
+        db.disconnect()
+
 # Las credenciales del admin se leen directamente de las variables de entorno
 admin_user = os.getenv('ADMIN_USER')
 admin_password = os.getenv('ADMIN_PASSWORD')

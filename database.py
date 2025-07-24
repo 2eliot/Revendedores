@@ -379,6 +379,71 @@ class Database:
         print(f"[FREEFIRE LATAM] No se pudo procesar respuesta: {response_data}")
         return None
 
+    def check_freefire_latam_api_availability(self, amount_value):
+        """Verificar disponibilidad en la API de Free Fire Latam sin generar PIN"""
+        import requests
+        import os
+
+        # Credenciales específicas para Free Fire Latam
+        provider_user = os.getenv('FREEFIRE_LATAM_USER')
+        provider_password = os.getenv('FREEFIRE_LATAM_PASSWORD')
+        api_url = "https://inefableshop.net/conexion_api/api.php"
+
+        if not provider_user or not provider_password:
+            print("[FREEFIRE LATAM] Error: Credenciales no configuradas")
+            return False
+
+        # Validar valores específicos de Free Fire Latam (1-9)
+        if amount_value < 1 or amount_value > 9:
+            print(f"[FREEFIRE LATAM] Valor {amount_value} inválido. Debe estar entre 1-9")
+            return False
+
+        # Parámetros para verificar disponibilidad (usando 'check' en lugar de 'recarga')
+        params = {
+            'action': 'check',
+            'usuario': provider_user,
+            'clave': provider_password,
+            'tipo': 'recargaPinFreefirebs',
+            'monto': str(amount_value),
+            'numero': '0'
+        }
+
+        try:
+            print(f"[FREEFIRE LATAM CHECK] Verificando disponibilidad para opción {amount_value}")
+            response = requests.get(api_url, params=params, timeout=15)
+            response.raise_for_status()
+            response_data = response.text.strip()
+
+            # Procesamiento de la respuesta de verificación
+            try:
+                import json
+                json_response = json.loads(response_data)
+                alert_status = json_response.get('ALERTA') or json_response.get('alerta', '').upper()
+                
+                # Si la alerta es verde, hay disponibilidad
+                if alert_status == 'VERDE' or alert_status == 'GREEN':
+                    print(f"[FREEFIRE LATAM CHECK] ✅ Opción {amount_value} disponible")
+                    return True
+                else:
+                    print(f"[FREEFIRE LATAM CHECK] ❌ Opción {amount_value} no disponible")
+                    return False
+                    
+            except json.JSONDecodeError:
+                # Intentar procesar respuesta con warnings
+                json_start = response_data.find('{')
+                if json_start != -1:
+                    json_part = response_data[json_start:]
+                    json_response = json.loads(json_part)
+                    alert_status = json_response.get('ALERTA') or json_response.get('alerta', '').upper()
+                    return alert_status == 'VERDE' or alert_status == 'GREEN'
+                
+                print(f"[FREEFIRE LATAM CHECK] Error procesando respuesta: {response_data}")
+                return False
+
+        except Exception as e:
+            print(f"[FREEFIRE LATAM CHECK] Error: {e}")
+            return False
+
     def get_freefire_global_pin(self, amount_value):
         """FUNCIÓN EXCLUSIVA para Free Fire Global - Completamente independiente"""
         # TODO: Implementar cuando se configure Free Fire Global

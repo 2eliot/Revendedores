@@ -83,16 +83,24 @@
       <label for="amount-select">Selecciona el Monto</label>
       <select id="amount-select" required>
         <option value="">-- Selecciona un paquete --</option>
-        <option id="monto_1" value="1">110 💎 / $0.66 (✅)</option>
-        <option id="monto_2" value="2">341 💎 / $1.99 (✅)</option>
-        <option id="monto_3" value="3">572 💎 / $3.35 (✅)</option>
-        <option id="monto_4" value="4">1.166 💎 / $6.70 (✅)</option>
-        <option id="monto_5" value="5">2.376 💎 / $12.70 (✅)</option>
-        <option id="monto_6" value="6">6.138 💎 / $29.50 (✅)</option>
-        <option id="monto_7" value="7">Tarjeta básica / $0.40 (✅)</option>
-        <option id="monto_8" value="8">Tarjeta semanal / $1.40 (✅)</option>
-        <option id="monto_9" value="9">Tarjeta mensual / $6.50 (✅)</option>
+        <option id="monto_1" value="1">110 💎 / $0.66 <span id="status_1">🔄</span></option>
+        <option id="monto_2" value="2">341 💎 / $1.99 <span id="status_2">🔄</span></option>
+        <option id="monto_3" value="3">572 💎 / $3.35 <span id="status_3">🔄</span></option>
+        <option id="monto_4" value="4">1.166 💎 / $6.70 <span id="status_4">🔄</span></option>
+        <option id="monto_5" value="5">2.376 💎 / $12.70 <span id="status_5">🔄</span></option>
+        <option id="monto_6" value="6">6.138 💎 / $29.50 <span id="status_6">🔄</span></option>
+        <option id="monto_7" value="7">Tarjeta básica / $0.40 <span id="status_7">🔄</span></option>
+        <option id="monto_8" value="8">Tarjeta semanal / $1.40 <span id="status_8">🔄</span></option>
+        <option id="monto_9" value="9">Tarjeta mensual / $6.50 <span id="status_9">🔄</span></option>
       </select>
+
+      <div class="availability-info" style="margin: 1rem 0; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; font-size: 0.9rem;">
+        <p><strong>Estado de disponibilidad:</strong></p>
+        <p style="margin: 0.25rem 0;">✅ = Disponible | ❌ = No disponible | 🔄 = Verificando...</p>
+        <button type="button" onclick="checkAvailability()" style="margin-top: 0.5rem; padding: 0.3rem 0.8rem; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">
+          🔄 Actualizar disponibilidad
+        </button>
+      </div>
 
       <button type="submit">Validar Recarga</button>
     </form>
@@ -307,6 +315,68 @@
         }
       } catch (error) {
         alert('Error de conexión');
+      }
+    }
+
+    // Verificar disponibilidad al cargar la página
+    document.addEventListener('DOMContentLoaded', function() {
+      checkAvailability();
+    });
+
+    // Función para verificar disponibilidad de PINs
+    async function checkAvailability() {
+      try {
+        // Mostrar estado de "verificando"
+        for (let i = 1; i <= 9; i++) {
+          const statusSpan = document.querySelector(`#monto_${i} span`);
+          if (statusSpan) {
+            statusSpan.textContent = '🔄';
+          }
+        }
+
+        const response = await fetch('/freefire-latam/check-availability');
+        const data = await response.json();
+
+        if (data.success && data.availability) {
+          // Actualizar el estado de cada opción
+          Object.keys(data.availability).forEach(option => {
+            const statusInfo = data.availability[option];
+            const statusSpan = document.querySelector(`#monto_${option} span`);
+            
+            if (statusSpan) {
+              statusSpan.textContent = statusInfo.status_icon;
+            }
+
+            // Deshabilitar opciones no disponibles
+            const optionElement = document.getElementById(`monto_${option}`);
+            if (optionElement) {
+              if (!statusInfo.available) {
+                optionElement.disabled = true;
+                optionElement.style.color = '#999';
+              } else {
+                optionElement.disabled = false;
+                optionElement.style.color = '';
+              }
+            }
+          });
+        } else {
+          // En caso de error, mostrar estado desconocido
+          for (let i = 1; i <= 9; i++) {
+            const statusSpan = document.querySelector(`#monto_${i} span`);
+            if (statusSpan) {
+              statusSpan.textContent = '❓';
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error verificando disponibilidad:', error);
+        // En caso de error, mostrar estado desconocido
+        for (let i = 1; i <= 9; i++) {
+          const statusSpan = document.querySelector(`#monto_${i} span`);
+          if (statusSpan) {
+            statusSpan.textContent = '❓';
+          }
+        }
       }
     }
 
