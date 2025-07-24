@@ -1,7 +1,6 @@
-
 {
-  "name": "Free Fire Latam - Recarga",
-  "short_name": "FFLatam",
+  "name": "InefableStore",
+  "short_name": "InefableStore",
   "description": "Aplicación de recarga para Free Fire Latam y Block Striker",
   "start_url": "/dashboard",
   "display": "standalone",
