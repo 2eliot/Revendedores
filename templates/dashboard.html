@@ -117,7 +117,7 @@
           {% if transaction.player_id %}
           <div><strong>ID Jugador:</strong> {{ transaction.player_id }}</div>
           {% endif %}
-          {% if transaction.game_type %}
+          {% if transaction.game_type and transaction.game_type != 'Block Striker' %}
           <div><strong>Juego:</strong> {{ transaction.game_type }}</div>
           {% endif %}
           {% endif %}
