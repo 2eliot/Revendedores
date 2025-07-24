@@ -353,16 +353,16 @@ def freefire_latam_validate_recharge():
                     "error": f"No hay PINés de Free Fire Latam disponibles de ${real_price}. Contacta al administrador."
                 }), 400
 
-        # Descontar saldo
+        # Descontar saldo (solo para usuarios normales, no para admin)
         if user_id != 'ADMIN001':
             new_balance = current_balance - real_price
             balance_updated = db.update_user_balance(user_id, new_balance)
+            if balance_updated is None:
+                return jsonify({"error": "Error al actualizar el saldo"}), 500
         else:
+            # El admin no necesita saldo, no descontamos nada
             new_balance = current_balance
             balance_updated = True
-
-        if balance_updated is None:
-            return jsonify({"error": "Error al actualizar el saldo"}), 500
 
         # Procesar según origen del PIN
         if available_pin:
@@ -486,16 +486,16 @@ def block_striker_validate_recharge():
 
         # Block Striker no requiere código/PIN, solo procesa la compra directamente
 
-        # Descontar saldo
+        # Descontar saldo (solo para usuarios normales, no para admin)
         if user_id != 'ADMIN001':
             new_balance = current_balance - real_price
             balance_updated = db.update_user_balance(user_id, new_balance)
+            if balance_updated is None:
+                return jsonify({"error": "Error al actualizar el saldo"}), 500
         else:
+            # El admin no necesita saldo, no descontamos nada
             new_balance = current_balance
             balance_updated = True
-
-        if balance_updated is None:
-            return jsonify({"error": "Error al actualizar el saldo"}), 500
 
         # Crear transacción específica para Block Striker sin código
         transaction_id = f"BS{user_id[-3:]}{int(__import__('time').time()) % 10000}"
