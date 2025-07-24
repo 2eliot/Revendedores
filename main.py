@@ -12,8 +12,8 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY')
 
-# Configurar duración de sesión a 30 días
-app.permanent_session_lifetime = timedelta(days=30)
+# Configurar duración de sesión a 3 horas
+app.permanent_session_lifetime = timedelta(hours=3)
 
 def login_required(f):
     @wraps(f)
