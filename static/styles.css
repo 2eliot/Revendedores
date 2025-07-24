@@ -35,7 +35,6 @@ body {
   height: 28px;
   stroke: #fff;
   fill: none;
-  transition: transform 0.3s ease;
 }
 .hamburger .icon path {
   transition: all 0.3s ease;
@@ -45,15 +44,13 @@ body {
   background-color: rgba(255,255,255,0.1);
 }
 
-/* Animación del hamburger cuando está abierto */
-.hamburger.active .icon {
-  transform: rotate(90deg);
-}
+/* Animación del hamburger cuando está abierto - líneas se convierten en X */
 .hamburger.active .icon path:nth-child(1) {
   transform: translateY(6px) rotate(45deg);
 }
 .hamburger.active .icon path:nth-child(2) {
   opacity: 0;
+  transform: scale(0);
 }
 .hamburger.active .icon path:nth-child(3) {
   transform: translateY(-6px) rotate(-45deg);
