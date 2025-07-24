@@ -119,11 +119,9 @@
           {% else %}
           {% if transaction.game_type != 'Block Striker' %}
           <div><strong>PIN/Código:</strong> {{ transaction.pin }}</div>
-          {% endif %}
           {% if transaction.player_id %}
           <div><strong>ID Jugador:</strong> {{ transaction.player_id }}</div>
           {% endif %}
-          {% if transaction.game_type and transaction.game_type != 'Block Striker' %}
           <div><strong>Juego:</strong> {{ transaction.game_type }}</div>
           {% endif %}
           {% endif %}
@@ -176,7 +174,7 @@
     function toggleMenu() {
       const menu = document.getElementById("menu-juegos");
       const hamburger = document.querySelector(".hamburger");
-      
+
       menu.classList.toggle("visible");
       hamburger.classList.toggle("active");
     }
@@ -200,7 +198,7 @@
 
         if (data.success) {
           showToast(`Transacción ${newStatus === 'aprobado' ? 'aprobada' : 'rechazada'} exitosamente`, 'success');
-          
+
           // Actualizar la interfaz sin recargar la página
           setTimeout(() => {
             location.reload();
@@ -261,16 +259,16 @@
     // Función para mostrar notificaciones toast
     function showToast(message, type = 'success', duration = 4000) {
       const container = document.getElementById('toast-container');
-      
+
       const toast = document.createElement('div');
       toast.className = `toast ${type}`;
-      
+
       const icons = {
         success: '✅',
         error: '❌',
         info: 'ℹ️'
       };
-      
+
       toast.innerHTML = `
         <div class="toast-content">
           <span class="toast-icon">${icons[type] || '✅'}</span>
@@ -278,20 +276,20 @@
           <button class="toast-close" onclick="removeToast(this.parentElement.parentElement)">×</button>
         </div>
       `;
-      
+
       container.appendChild(toast);
-      
+
       // Mostrar toast con animación
       setTimeout(() => {
         toast.classList.add('show');
       }, 100);
-      
+
       // Auto-remover después del tiempo especificado
       setTimeout(() => {
         removeToast(toast);
       }, duration);
     }
-    
+
     function removeToast(toast) {
       if (toast && toast.parentElement) {
         toast.classList.remove('show');
@@ -305,11 +303,11 @@
     function showEditBannerModal() {
       const modal = document.getElementById('editBannerModal');
       const textarea = document.getElementById('banner-message');
-      
+
       // Obtener el mensaje actual del banner
       const currentMessage = document.querySelector('.marquee-text').textContent.trim();
       textarea.value = currentMessage;
-      
+
       modal.style.display = 'block';
     }
 
@@ -319,7 +317,7 @@
 
     async function updateBannerMessage() {
       const newMessage = document.getElementById('banner-message').value.trim();
-      
+
       if (!newMessage) {
         showToast('Por favor ingresa un mensaje', 'error');
         return;
