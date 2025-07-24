@@ -727,6 +727,26 @@ def save_game_prices(prices):
         print(f"Error guardando precios: {e}")
         return False
 
+@app.route('/freefire-latam/check-availability/<int:option_value>')
+@login_required
+def check_freefire_latam_availability(option_value):
+    """Verificar disponibilidad de PINs en la API de Free Fire Latam"""
+    db = Database()
+    if not db.connect():
+        return jsonify({"error": "Error de conexión a la base de datos"}), 500
+
+    try:
+        # Verificar disponibilidad solo en la API
+        pin_available = db.get_freefire_latam_pin(option_value)
+        
+        return jsonify({
+            "available": pin_available is not None,
+            "option_value": option_value
+        })
+
+    finally:
+        db.disconnect()
+
 @app.route('/admin/get-game-prices')
 @admin_required
 def get_game_prices():

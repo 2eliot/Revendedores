@@ -83,15 +83,15 @@
       <label for="amount-select">Selecciona el Monto</label>
       <select id="amount-select" required>
         <option value="">-- Selecciona un paquete --</option>
-        <option id="monto_1" value="1">110 💎 / $0.66</option>
-        <option id="monto_2" value="2">341 💎 / $1.99</option>
-        <option id="monto_3" value="3">572 💎 / $3.35</option>
-        <option id="monto_4" value="4">1.166 💎 / $6.70</option>
-        <option id="monto_5" value="5">2.376 💎 / $12.70</option>
-        <option id="monto_6" value="6">6.138 💎 / $29.50</option>
-        <option id="monto_7" value="7">Tarjeta básica / $0.40</option>
-        <option id="monto_8" value="8">Tarjeta semanal / $1.40</option>
-        <option id="monto_9" value="9">Tarjeta mensual / $6.50</option>
+        <option id="monto_1" value="1"><span id="status_1">⏳</span> 110 💎 / $0.66</option>
+        <option id="monto_2" value="2"><span id="status_2">⏳</span> 341 💎 / $1.99</option>
+        <option id="monto_3" value="3"><span id="status_3">⏳</span> 572 💎 / $3.35</option>
+        <option id="monto_4" value="4"><span id="status_4">⏳</span> 1.166 💎 / $6.70</option>
+        <option id="monto_5" value="5"><span id="status_5">⏳</span> 2.376 💎 / $12.70</option>
+        <option id="monto_6" value="6"><span id="status_6">⏳</span> 6.138 💎 / $29.50</option>
+        <option id="monto_7" value="7"><span id="status_7">⏳</span> Tarjeta básica / $0.40</option>
+        <option id="monto_8" value="8"><span id="status_8">⏳</span> Tarjeta semanal / $1.40</option>
+        <option id="monto_9" value="9"><span id="status_9">⏳</span> Tarjeta mensual / $6.50</option>
       </select>
 
       
@@ -313,6 +313,35 @@
     }
 
     
+
+    // Función para verificar disponibilidad de PINs
+    async function checkPinAvailability() {
+      for (let i = 1; i <= 9; i++) {
+        try {
+          const response = await fetch(`/freefire-latam/check-availability/${i}`);
+          const data = await response.json();
+          
+          const statusElement = document.getElementById(`status_${i}`);
+          if (data.available) {
+            statusElement.textContent = '✅';
+            statusElement.style.color = '#28a745';
+          } else {
+            statusElement.textContent = '❌';
+            statusElement.style.color = '#dc3545';
+          }
+        } catch (error) {
+          console.log('Error verificando disponibilidad:', error);
+          const statusElement = document.getElementById(`status_${i}`);
+          statusElement.textContent = '❌';
+          statusElement.style.color = '#dc3545';
+        }
+      }
+    }
+
+    // Verificar disponibilidad al cargar la página
+    document.addEventListener('DOMContentLoaded', function() {
+      checkPinAvailability();
+    });
 
     // Cerrar ventanas al hacer clic fuera
     document.addEventListener('click', function(event) {
