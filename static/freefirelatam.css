@@ -180,99 +180,18 @@ option:disabled {
     padding: 1.2rem;
     border-radius: 8px;
   }
-
+  
   .juego-titulo {
     font-size: 1.5rem;
     margin-bottom: 1rem;
   }
-
+  
   .juego-form {
     margin-bottom: 1rem;
   }
-
+  
   .juego-descripcion {
     font-size: 0.85rem;
     padding: 0.8rem;
   }
-}
-
-/* Estilos específicos para Free Fire Latam */
-.juego-container {
-  background: linear-gradient(135deg, #1a5f1a, #2d8f2d);
-}
-
-/* Panel de disponibilidad */
-.availability-panel {
-  background: rgba(255, 255, 255, 0.1);
-  padding: 1.5rem;
-  border-radius: 12px;
-  margin: 1rem 0;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.availability-panel h4 {
-  color: white;
-  margin-bottom: 1rem;
-  text-align: center;
-}
-
-.availability-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 0.8rem;
-  margin-bottom: 1rem;
-}
-
-.availability-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 0.5rem 0.8rem;
-  border-radius: 8px;
-  color: white;
-  font-size: 0.9rem;
-}
-
-.status-indicator {
-  font-size: 1.2rem;
-  cursor: help;
-}
-
-.availability-legend {
-  display: flex;
-  justify-content: center;
-  gap: 1.5rem;
-  margin-bottom: 1rem;
-  color: white;
-  font-size: 0.9rem;
-}
-
-.refresh-btn {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  cursor: pointer;
-  display: block;
-  margin: 0 auto;
-  transition: all 0.3s ease;
-}
-
-.refresh-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: translateY(-2px);
-}
-
-.availability-status {
-  font-size: 1rem;
-  margin-left: 5px;
-}
-
-/* Deshabilitar opciones no disponibles */
-select option:disabled {
-  color: #999 !important;
-  background-color: #f5f5f5 !important;
 }

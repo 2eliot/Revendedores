@@ -83,65 +83,16 @@
       <label for="amount-select">Selecciona el Monto</label>
       <select id="amount-select" required>
         <option value="">-- Selecciona un paquete --</option>
-        <option id="monto_1" value="1">110 💎 / $0.66 <span id="status_1" class="availability-status">🔄</span></option>
-        <option id="monto_2" value="2">341 💎 / $1.99 <span id="status_2" class="availability-status">🔄</span></option>
-        <option id="monto_3" value="3">572 💎 / $3.35 <span id="status_3" class="availability-status">🔄</span></option>
-        <option id="monto_4" value="4">1.166 💎 / $6.70 <span id="status_4" class="availability-status">🔄</span></option>
-        <option id="monto_5" value="5">2.376 💎 / $12.70 <span id="status_5" class="availability-status">🔄</span></option>
-        <option id="monto_6" value="6">6.138 💎 / $29.50 <span id="status_6" class="availability-status">🔄</span></option>
-        <option id="monto_7" value="7">Tarjeta básica / $0.40 <span id="status_7" class="availability-status">🔄</span></option>
-        <option id="monto_8" value="8">Tarjeta semanal / $1.40 <span id="status_8" class="availability-status">🔄</span></option>
-        <option id="monto_9" value="9">Tarjeta mensual / $6.50 <span id="status_9" class="availability-status">🔄</span></option>
+        <option id="monto_1" value="1">110 💎 / $0.66</option>
+        <option id="monto_2" value="2">341 💎 / $1.99</option>
+        <option id="monto_3" value="3">572 💎 / $3.35</option>
+        <option id="monto_4" value="4">1.166 💎 / $6.70</option>
+        <option id="monto_5" value="5">2.376 💎 / $12.70</option>
+        <option id="monto_6" value="6">6.138 💎 / $29.50</option>
+        <option id="monto_7" value="7">Tarjeta básica / $0.40</option>
+        <option id="monto_8" value="8">Tarjeta semanal / $1.40</option>
+        <option id="monto_9" value="9">Tarjeta mensual / $6.50</option>
       </select>
-
-      <!-- Panel de estado de disponibilidad -->
-      <div class="availability-panel">
-        <h4>📊 Estado de Disponibilidad de PINs</h4>
-        <div class="availability-grid">
-          <div class="availability-item">
-            <span>110 💎 ($0.66):</span>
-            <span id="grid_status_1" class="status-indicator">🔄</span>
-          </div>
-          <div class="availability-item">
-            <span>341 💎 ($1.99):</span>
-            <span id="grid_status_2" class="status-indicator">🔄</span>
-          </div>
-          <div class="availability-item">
-            <span>572 💎 ($3.35):</span>
-            <span id="grid_status_3" class="status-indicator">🔄</span>
-          </div>
-          <div class="availability-item">
-            <span>1.166 💎 ($6.70):</span>
-            <span id="grid_status_4" class="status-indicator">🔄</span>
-          </div>
-          <div class="availability-item">
-            <span>2.376 💎 ($12.70):</span>
-            <span id="grid_status_5" class="status-indicator">🔄</span>
-          </div>
-          <div class="availability-item">
-            <span>6.138 💎 ($29.50):</span>
-            <span id="grid_status_6" class="status-indicator">🔄</span>
-          </div>
-          <div class="availability-item">
-            <span>Tarjeta básica ($0.40):</span>
-            <span id="grid_status_7" class="status-indicator">🔄</span>
-          </div>
-          <div class="availability-item">
-            <span>Tarjeta semanal ($1.40):</span>
-            <span id="grid_status_8" class="status-indicator">🔄</span>
-          </div>
-          <div class="availability-item">
-            <span>Tarjeta mensual ($6.50):</span>
-            <span id="grid_status_9" class="status-indicator">🔄</span>
-          </div>
-        </div>
-        <div class="availability-legend">
-          <span>🔄 Verificando</span>
-          <span>✅ Disponible</span>
-          <span>❌ No disponible</span>
-        </div>
-        <button onclick="checkAllAvailability()" class="refresh-btn">🔄 Actualizar Estado</button>
-      </div></select>
 
       
 
@@ -362,81 +313,6 @@
     }
 
     
-
-    // Verificar disponibilidad de PINs al cargar la página
-    document.addEventListener('DOMContentLoaded', function() {
-      checkAllAvailability();
-      // Verificar cada 60 segundos
-      setInterval(checkAllAvailability, 60000);
-    });
-
-    async function checkAllAvailability() {
-      for (let i = 1; i <= 9; i++) {
-        await checkPinAvailability(i);
-        // Pequeña pausa entre verificaciones para no sobrecargar la API
-        await new Promise(resolve => setTimeout(resolve, 500));
-      }
-    }
-
-    async function checkPinAvailability(optionValue) {
-      try {
-        const response = await fetch('/freefire-latam/check-availability', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({
-            option_value: optionValue
-          })
-        });
-
-        const data = await response.json();
-        
-        const statusIcon = data.available ? '✅' : '❌';
-        const statusText = data.available ? 'Disponible' : 'No disponible';
-        
-        // Actualizar indicador en el select
-        const selectStatus = document.getElementById(`status_${optionValue}`);
-        if (selectStatus) {
-          selectStatus.textContent = statusIcon;
-          selectStatus.title = statusText;
-        }
-        
-        // Actualizar indicador en la grilla
-        const gridStatus = document.getElementById(`grid_status_${optionValue}`);
-        if (gridStatus) {
-          gridStatus.textContent = statusIcon;
-          gridStatus.title = statusText;
-        }
-
-        // Deshabilitar opción si no está disponible
-        const option = document.getElementById(`monto_${optionValue}`);
-        if (option) {
-          if (!data.available) {
-            option.disabled = true;
-            option.style.color = '#999';
-          } else {
-            option.disabled = false;
-            option.style.color = '';
-          }
-        }
-
-      } catch (error) {
-        console.error('Error verificando disponibilidad:', error);
-        
-        // En caso de error, mostrar estado de verificación
-        const errorIcon = '⚠️';
-        const selectStatus = document.getElementById(`status_${optionValue}`);
-        const gridStatus = document.getElementById(`grid_status_${optionValue}`);
-        
-        if (selectStatus) {
-          selectStatus.textContent = errorIcon;
-          selectStatus.title = 'Error verificando';
-        }
-        if (gridStatus) {
-          gridStatus.textContent = errorIcon;
-          gridStatus.title = 'Error verificando';
-        }
-      }
-    }
 
     // Cerrar ventanas al hacer clic fuera
     document.addEventListener('click', function(event) {
