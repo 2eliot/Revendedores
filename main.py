@@ -166,9 +166,11 @@ def freefirelatam():
         if balance is None:
             balance = "0.00"
 
+        banner_message = get_banner_message()
         return render_template('freefirelatam.html', 
                              user_id=user_id, 
-                             balance=balance)
+                             balance=balance,
+                             banner_message=banner_message)
 
     finally:
         db.disconnect()
@@ -415,9 +417,11 @@ def blockstriker():
 
     try:
         balance = db.get_user_balance(user_id)
+        banner_message = get_banner_message()
         return render_template('blockstriker.html', 
                              user_id=user_id, 
-                             balance=balance)
+                             balance=balance,
+                             banner_message=banner_message)
     finally:
         db.disconnect()
 
