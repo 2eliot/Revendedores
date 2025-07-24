@@ -28,6 +28,7 @@ class Database:
                     port=url.port,
                     cursor_factory=RealDictCursor
                 )
+                self.cursor = self.connection.cursor()
             else:
                 # Usar credenciales individuales (para desarrollo local)
                 host = os.getenv('DB_HOST', 'localhost')
@@ -44,6 +45,7 @@ class Database:
                     port=port,
                     cursor_factory=RealDictCursor
                 )
+                self.cursor = self.connection.cursor()
             return True
         except Exception as e:
             print(f"Error conectando a la base de datos: {e}")
