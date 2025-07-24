@@ -9,7 +9,7 @@ from functools import wraps
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.getenv('FLASK_SECRET_KEY', 'clave_por_defecto')
+app.secret_key = os.getenv('FLASK_SECRET_KEY')
 
 def login_required(f):
     @wraps(f)
@@ -42,8 +42,8 @@ def login():
             return jsonify({"error": "Email y contraseña son requeridos"}), 400
 
         # Verificar credenciales del admin desde secretos
-        admin_user = os.getenv('ADMIN_USER', 'admin')
-        admin_password = os.getenv('ADMIN_PASSWORD', 'password')
+        admin_user = os.getenv('ADMIN_USER')
+        admin_password = os.getenv('ADMIN_PASSWORD')
 
         if email == admin_user and password == admin_password:
             session['user_id'] = 'ADMIN001'
@@ -774,9 +774,9 @@ def update_game_prices():
         return jsonify({"error": f"Error actualizando precios: {str(e)}"}), 500
 
 # Las credenciales del admin se leen directamente de las variables de entorno
-admin_user = os.getenv('ADMIN_USER', 'admin')
-admin_password = os.getenv('ADMIN_PASSWORD', 'password')
-print(f"Admin configurado - Usuario: {admin_user}, Password: {admin_password}")
+admin_user = os.getenv('ADMIN_USER')
+admin_password = os.getenv('ADMIN_PASSWORD')
+print(f"Admin configurado - Usuario: {admin_user if admin_user else 'NO CONFIGURADO'}")
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

@@ -277,8 +277,8 @@ class Database:
         import os
 
         # Credenciales específicas para Free Fire Latam
-        provider_user = os.getenv('FREEFIRE_LATAM_USER', 'inefableshop')
-        provider_password = os.getenv('FREEFIRE_LATAM_PASSWORD', '321Naruto%')
+        provider_user = os.getenv('FREEFIRE_LATAM_USER')
+        provider_password = os.getenv('FREEFIRE_LATAM_PASSWORD')
         api_url = "https://inefableshop.net/conexion_api/api.php"
 
         if not provider_user or not provider_password:
