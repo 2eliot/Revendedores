@@ -6,6 +6,11 @@
   <title>Panel Principal</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
   <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet">
+  <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+  <meta name="theme-color" content="#28a745">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="FFLatam">
 </head>
 <body>
 
@@ -187,7 +192,71 @@
     </div>
   </section>
 
+  <div class="install-icon" onclick="toggleInstallBox()">
+    <svg class="icon" viewBox="0 0 24 24">
+      <path d="M17 18a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v13zM12 15l3-3h-2V7h-2v5H9l3 3z" />
+    </svg>
+    <div id="install-box" class="install-box">
+      <h3>📲 Instalar Aplicación</h3>
+      <p id="install-info">Pulsa el botón para instalar la aplicación en tu dispositivo.</p>
+      <button id="install-btn" onclick="installApp()" style="display: none;">Instalar</button>
+    </div>
+  </div>
+
   <script>
+    // Variables para PWA
+    let deferredPrompt;
+
+    // Registrar Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/static/service-worker.js')
+        .then(registration => {
+          console.log('Service Worker registrado:', registration);
+        })
+        .catch(error => {
+          console.log('Error registrando Service Worker:', error);
+        });
+    }
+
+    // Detectar evento de instalación de PWA
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+
+      // Mostrar botón de instalación
+      const installBtn = document.getElementById('install-btn');
+      const installInfo = document.getElementById('install-info');
+
+      if (installBtn) {
+        installBtn.style.display = 'block';
+        installInfo.style.display = 'none';
+      }
+    });
+
+    // Función para instalar la app
+    function installApp() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+
+        deferredPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            console.log('Usuario instaló la PWA');
+            // Ocultar botón después de la instalación
+            document.getElementById('install-btn').style.display = 'none';
+            document.getElementById('install-info').innerHTML = '✅ ¡Aplicación instalada correctamente!';
+            document.getElementById('install-info').style.display = 'block';
+            document.getElementById('install-info').style.color = '#28a745';
+          }
+          deferredPrompt = null;
+        });
+      }
+    }
+
+    // Función para mostrar/ocultar caja de instalación
+    function toggleInstallBox() {
+      document.getElementById("install-box").classList.toggle("visible");
+    }
+
     function toggleUserBox() {
       document.getElementById("user-box").classList.toggle("visible");
     }
@@ -236,11 +305,13 @@
       const userBox = document.getElementById("user-box");
       const menuJuegos = document.getElementById("menu-juegos");
       const walletBox = document.getElementById("wallet-box");
+      const installBox = document.getElementById("install-box");
 
       // Verificar si el clic no fue en los iconos o dentro de las ventanas
       const isUserIcon = event.target.closest('.user-icon');
       const isMenuIcon = event.target.closest('.hamburger');
       const isWalletIcon = event.target.closest('.wallet-icon');
+      const isInstallIcon = event.target.closest('.install-icon');
 
       if (!isUserIcon && userBox.classList.contains('visible')) {
         userBox.classList.remove('visible');
@@ -253,6 +324,10 @@
 
       if (!isWalletIcon && walletBox.classList.contains('visible')) {
         walletBox.classList.remove('visible');
+      }
+
+      if (!isInstallIcon && installBox && installBox.classList.contains('visible')) {
+        installBox.classList.remove('visible');
       }
     });
   </script>

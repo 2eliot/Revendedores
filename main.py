@@ -6,6 +6,7 @@ import os
 from dotenv import load_dotenv
 from functools import wraps
 from datetime import timedelta
+from flask import send_from_directory
 
 load_dotenv()
 
@@ -321,10 +322,10 @@ def freefire_latam_validate_recharge():
         # Obtener precio real desde configuración dinámica
         current_prices = load_game_prices()
         expected_price = current_prices.get('freefire_latam', {}).get(str(option_value))
-        
+
         if expected_price is None:
             return jsonify({"error": "Precio no configurado para esta opción"}), 400
-            
+
         # Verificar que el precio enviado coincida con el configurado
         if abs(real_price - expected_price) > 0.01:
             return jsonify({"error": "Precio no coincide con la configuración actual"}), 400
@@ -465,10 +466,10 @@ def block_striker_validate_recharge():
         # Obtener precio real desde configuración dinámica
         current_prices = load_game_prices()
         expected_price = current_prices.get('block_striker', {}).get(str(option_value))
-        
+
         if expected_price is None:
             return jsonify({"error": "Precio no configurado para esta opción"}), 400
-            
+
         # Verificar que el precio enviado coincida con el configurado
         if abs(real_price - expected_price) > 0.01:
             return jsonify({"error": "Precio no coincide con la configuración actual"}), 400
@@ -767,7 +768,7 @@ def update_game_prices():
 
         # Cargar precios actuales
         current_prices = load_game_prices()
-        
+
         # Actualizar precios del juego específico
         current_prices[game_type] = {}
         for key, price in new_prices.items():
@@ -785,7 +786,18 @@ def update_game_prices():
     except Exception as e:
         return jsonify({"error": f"Error actualizando precios: {str(e)}"}), 500
 
+# Ruta para servir el service worker
+@app.route('/static/service-worker.js')
+def service_worker():
+    return send_from_directory('static', 'service-worker.js', mimetype='application/javascript')
 
+# Agregar headers de CORS para todas las respuestas
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE')
+    return response
 
 # Las credenciales del admin se leen directamente de las variables de entorno
 admin_user = os.getenv('ADMIN_USER')
