@@ -7,8 +7,6 @@ from dotenv import load_dotenv
 from functools import wraps
 from datetime import timedelta
 from flask import send_from_directory
-import random
-from datetime import datetime
 
 load_dotenv()
 
@@ -431,72 +429,9 @@ def freefire_latam_validate_recharge():
 
 @app.route('/freefire-global/validate-recharge', methods=['POST'])
 @login_required
-def validate_freefire_global_recharge():
-    """Validar recarga de Free Fire Global"""
-    db = Database()
-    if not db.connect():
-        return jsonify({"error": "Error de conexión a la base de datos"}), 500
-
-    try:
-        data = request.get_json()
-        option_value = data.get('option_value')  # Valor 1-6
-        real_price = data.get('real_price')      # Precio real en USD
-        user_id = session['user_id']
-
-        print(f"🎮 Procesando Free Fire Global - Usuario: {user_id}, Opción: {option_value}, Precio: ${real_price}")
-
-        # Verificar saldo del usuario (admin exento)
-        if user_id != 'ADMIN001':
-            current_balance = db.get_user_balance(user_id)
-            if current_balance is None or float(current_balance) < real_price:
-                return jsonify({"error": f"Saldo insuficiente. Necesitas ${real_price}"}), 400
-
-        # Intentar obtener PIN de la base de datos local
-        pin_data = db.get_pin_for_freefire_global(option_value)
-
-        if pin_data:
-            pin_code = pin_data['pin_code']
-
-            # Generar ID de transacción
-            transaction_id = f"FFGLOBAL{datetime.now().strftime('%Y%m%d%H%M%S')}{random.randint(1000, 9999)}"
-
-            # Descontar saldo (excepto admin)
-            if user_id != 'ADMIN001':
-                new_balance = float(db.get_user_balance(user_id)) - real_price
-                if not db.update_user_balance(user_id, new_balance):
-                    return jsonify({"error": "Error actualizando saldo"}), 500
-
-            # Registrar transacción
-            db.add_transaction(
-                user_id=user_id,
-                amount=real_price,
-                transaction_type='freefire_global_purchase',
-                description=f"Free Fire Global - Opción {option_value}",
-                transaction_id=transaction_id,
-                game_type='Free Fire Global',
-                option_value=option_value
-            )
-
-            # Marcar PIN como usado
-            db.mark_pin_as_used(pin_data['id'])
-
-            print(f"✅ PIN entregado exitosamente: {pin_code}")
-
-            return jsonify({
-                "success": True,
-                "pin": pin_code,
-                "transaction_id": transaction_id,
-                "source": "local_database"
-            })
-        else:
-            return jsonify({"error": "No hay PINs disponibles para esta opción"}), 400
-
-    except Exception as e:
-        print(f"❌ Error en Free Fire Global: {str(e)}")
-        return jsonify({"error": f"Error interno: {str(e)}"}), 500
-
-    finally:
-        db.disconnect()
+def freefire_global_validate_recharge():
+    """ENDPOINT EXCLUSIVO para Free Fire Global - Completamente independiente"""
+    return jsonify({"error": "Free Fire Global no implementado aún"}), 501
 
 @app.route('/blockstriker')
 @login_required
@@ -850,8 +785,7 @@ def update_game_prices():
         print(f"🔄 Actualizando precios de {game_type}: {new_prices}")
 
         if not game_type or not new_prices:
-            return```text
-jsonify({"error": "Tipo de juego y precios son requeridos"}), 400
+            return jsonify({"error": "Tipo de juego y precios son requeridos"}), 400
 
         if game_type not in ['freefire_latam', 'block_striker']:
             return jsonify({"error": "Tipo de juego inválido"}), 400
@@ -907,90 +841,6 @@ admin_user = os.getenv('ADMIN_USER')
 admin_password = os.getenv('ADMIN_PASSWORD')
 print(f"Admin configurado - Usuario: {admin_user if admin_user else 'NO CONFIGURADO'}")
 
-db = Database()
-if not db.connect():
-    print("❌ Error conectando a la base de datos para cargar precios")
-    # Retornar precios por defecto en caso de error
-    
-@app.route('/freefire-global/validate-recharge', methods=['POST'])
-@login_required
-def validate_freefire_global_recharge():
-    """Validar recarga de Free Fire Global"""
-    db = Database()
-    if not db.connect():
-        return jsonify({"error": "Error de conexión a la base de datos"}), 500
-
-    try:
-        data = request.get_json()
-        option_value = data.get('option_value')  # Valor 1-6
-        real_price = data.get('real_price')      # Precio real en USD
-        user_id = session['user_id']
-
-        print(f"🎮 Procesando Free Fire Global - Usuario: {user_id}, Opción: {option_value}, Precio: ${real_price}")
-
-        # Verificar saldo del usuario (admin exento)
-        if user_id != 'ADMIN001':
-            current_balance = db.get_user_balance(user_id)
-            if current_balance is None or float(current_balance) < real_price:
-                return jsonify({"error": f"Saldo insuficiente. Necesitas ${real_price}"}), 400
-
-        # Intentar obtener PIN de la base de datos local
-        # Define los precios para Free Fire Global
-        prices = {
-            "1": {"diamonds": "100+10", "price": 0.86},
-            "2": {"diamonds": "310+31", "price": 2.90},
-            "3": {"diamonds": "520+52", "price": 4.00},
-            "4": {"diamonds": "1.060+106", "price": 7.75},
-            "5": {"diamonds": "2.180+218", "price": 15.30},
-            "6": {"diamonds": "5.600+560", "price": 38.00}
-        }
-        
-        if option_value not in prices:
-            return jsonify({"error": "Opción inválida"}), 400
-        
-        expected_price = prices[option_value]["price"]
-        
-        if abs(float(real_price) - expected_price) > 0.01:
-            return jsonify({"error": f"Precio incorrecto. Se esperaba ${expected_price:.2f}"}), 400
-        
-        # En este punto, puedes simular la compra porque no hay PINs
-        transaction_id = f"FFGLOBAL{datetime.now().strftime('%Y%m%d%H%M%S')}{random.randint(1000, 9999)}"
-        
-        # Descontar saldo (excepto admin)
-        if user_id != 'ADMIN001':
-            new_balance = float(db.get_user_balance(user_id)) - float(real_price)
-            if not db.update_user_balance(user_id, new_balance):
-                return jsonify({"error": "Error actualizando saldo"}), 500
-        else:
-            new_balance = float(db.get_user_balance(user_id))
-
-        # Registrar transacción
-        db.insert_transaction(
-            user_id=user_id,
-            amount=float(real_price),
-            transaction_type='freefire_global_purchase',
-            description=f"Compra Free Fire Global - {prices[option_value]['diamonds']} diamantes",
-            transaction_id=transaction_id,
-            game_type='Free Fire Global',
-            option_value=option_value
-        )
-
-        print(f"✅ Compra Free Fire Global exitosa para {user_id} - {prices[option_value]['diamonds']} diamantes")
-
-        return jsonify({
-            "success": True,
-            "transaction_id": transaction_id,
-            "diamonds": prices[option_value]["diamonds"],
-            "new_balance": f"{new_balance:.2f}",
-            "message": f"Compra exitosa de {prices[option_value]['diamonds']} diamantes"
-        })
-
-    except Exception as e:
-        print(f"❌ Error en Free Fire Global: {str(e)}")
-        return jsonify({"error": f"Error interno: {str(e)}"}), 500
-
-    finally:
-        db.disconnect()
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
