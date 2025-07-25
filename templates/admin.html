@@ -125,6 +125,8 @@
           <!-- Formulario para agregar PINés -->
           <div class="add-pins-form">
             <h3>➕ Agregar Nuevo PIN</h3>
+            <p>📌 <strong>Free Fire Latam:</strong> Opciones 1-9 (usa API + PINs locales)<br>
+               📌 <strong>Free Fire Global:</strong> Opciones 1-6 (usa SOLO PINs locales)</p>
             <form onsubmit="addSinglePin(event)">
               <div class="form-row">
                 <div class="form-group">
@@ -135,15 +137,25 @@
                   <label for="pin-value">💰 Valor del PIN:</label>
                   <select id="pin-value" required>
                     <option value="">-- Seleccionar valor --</option>
-                    <option value="1">💎 110 diamantes - $0.66</option>
-                    <option value="2">💎 341 diamantes - $1.99</option>
-                    <option value="3">💎 572 diamantes - $3.35</option>
-                    <option value="4">💎 1.166 diamantes - $6.70</option>
-                    <option value="5">💎 2.376 diamantes - $12.70</option>
-                    <option value="6">💎 6.138 diamantes - $29.50</option>
-                    <option value="7">🎫 Tarjeta básica - $0.40</option>
-                    <option value="8">🎫 Tarjeta semanal - $1.40</option>
-                    <option value="9">🎫 Tarjeta mensual - $6.50</option>
+                    <optgroup label="🔥 Free Fire Latam">
+                      <option value="1">💎 110 diamantes - $0.66</option>
+                      <option value="2">💎 341 diamantes - $1.99</option>
+                      <option value="3">💎 572 diamantes - $3.35</option>
+                      <option value="4">💎 1.166 diamantes - $6.70</option>
+                      <option value="5">💎 2.376 diamantes - $12.70</option>
+                      <option value="6">💎 6.138 diamantes - $29.50</option>
+                      <option value="7">🎫 Tarjeta básica - $0.40</option>
+                      <option value="8">🎫 Tarjeta semanal - $1.40</option>
+                      <option value="9">🎫 Tarjeta mensual - $6.50</option>
+                    </optgroup>
+                    <optgroup label="🌍 Free Fire Global">
+                      <option value="1">💎 100+10 diamantes - $0.86</option>
+                      <option value="2">💎 310+31 diamantes - $2.90</option>
+                      <option value="3">💎 520+52 diamantes - $4.00</option>
+                      <option value="4">💎 1.060+106 diamantes - $7.75</option>
+                      <option value="5">💎 2.180+218 diamantes - $15.30</option>
+                      <option value="6">💎 5.600+560 diamantes - $38.00</option>
+                    </optgroup>
                   </select>
                 </div>
                 <div class="form-group">
@@ -364,17 +376,18 @@
   <script>
     let selectedUserId = null;
 
-    // Mapeo de valores a precios reales (igual que en freefirelatam.html)
+    // Mapeo de valores a precios reales - Compatible con ambos Free Fire
     const priceMapping = {
-      '1': 0.66,  // 110 💎
-      '2': 1.99,  // 341 💎  
-      '3': 3.35,  // 572 💎
-      '4': 6.70,  // 1.166 💎
-      '5': 12.70, // 2.376 💎
-      '6': 29.50, // 6.138 💎
-      '7': 0.40,  // Tarjeta básica
-      '8': 1.40,  // Tarjeta semanal
-      '9': 6.50   // Tarjeta mensual
+      // Free Fire Latam (1-9) Y Free Fire Global (1-6) - Mismo valor, precio diferente
+      '1': 0.66,  // FF Latam: 110 💎 / FF Global: 100+10 💎
+      '2': 1.99,  // FF Latam: 341 💎 / FF Global: 310+31 💎  
+      '3': 3.35,  // FF Latam: 572 💎 / FF Global: 520+52 💎
+      '4': 6.70,  // FF Latam: 1.166 💎 / FF Global: 1.060+106 💎
+      '5': 12.70, // FF Latam: 2.376 💎 / FF Global: 2.180+218 💎
+      '6': 29.50, // FF Latam: 6.138 💎 / FF Global: 5.600+560 💎
+      '7': 0.40,  // Solo FF Latam: Tarjeta básica
+      '8': 1.40,  // Solo FF Latam: Tarjeta semanal
+      '9': 6.50   // Solo FF Latam: Tarjeta mensual
     };
 
     function showTab(tabName) {
@@ -430,7 +443,15 @@
         const data = await response.json();
 
         if (data.success) {
-          alert(`PIN "${pinCode}" de opción ${optionValue} ($${realPrice}) agregado exitosamente`);
+          // Determinar el tipo de juego según la opción
+          const gameType = (optionValue >= 1 && optionValue <= 6) ? 
+            'Free Fire Latam/Global' : 'Free Fire Latam';
+          
+          alert(`PIN "${pinCode}" agregado exitosamente\n` +
+                `Tipo: ${gameType}\n` +
+                `Opción: ${optionValue} ($${realPrice})\n` +
+                `Disponible para ambos juegos Free Fire`);
+          
           document.getElementById('pin-code').value = '';
           document.getElementById('pin-value').value = '';
           location.reload();
