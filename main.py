@@ -430,8 +430,147 @@ def freefire_latam_validate_recharge():
 @app.route('/freefire-global/validate-recharge', methods=['POST'])
 @login_required
 def freefire_global_validate_recharge():
-    """ENDPOINT EXCLUSIVO para Free Fire Global - Completamente independiente"""
-    return jsonify({"error": "Free Fire Global no implementado aún"}), 501
+    """ENDPOINT EXCLUSIVO para Free Fire Global - Consume PINes prioritarios locales"""
+    db = Database()
+    if not db.connect():
+        return jsonify({"error": "Error de conexión a la base de datos"}), 500
+
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "Datos de solicitud inválidos"}), 400
+
+        user_id = session['user_id']
+        region = data.get('region')           # 'latam' o 'global'
+        option_value = data.get('option_value') # Valor 1-6 específico de Free Fire Global
+        real_price = data.get('real_price')     # Precio real en USD
+
+        if not region or region not in ['latam', 'global']:
+            return jsonify({"error": "Región inválida"}), 400
+
+        if option_value is None or real_price is None:
+            return jsonify({"error": "Datos de recarga incompletos"}), 400
+
+        option_value = int(option_value)
+        real_price = float(real_price)
+
+        # Validación específica para Free Fire Global (1-6)
+        if option_value < 1 or option_value > 6:
+            return jsonify({"error": "Opción de Free Fire Global inválida"}), 400
+
+        # Mapeo de precios fijos para Free Fire Global
+        expected_prices = {
+            1: 0.86, 2: 2.90, 3: 4.00, 4: 7.75, 5: 15.30, 6: 38.00
+        }
+
+        expected_price = expected_prices.get(option_value)
+        if expected_price is None:
+            return jsonify({"error": "Precio no configurado para esta opción"}), 400
+
+        # Verificar que el precio enviado coincida con el esperado
+        if abs(real_price - expected_price) > 0.01:
+            return jsonify({"error": "Precio no coincide con la configuración"}), 400
+
+        # Verificar saldo del usuario
+        current_balance = float(db.get_user_balance(user_id))
+        if user_id != 'ADMIN001' and current_balance < real_price:
+            return jsonify({
+                "error": f"Saldo insuficiente. Tu saldo actual es ${current_balance:.2f} y necesitas ${real_price:.2f}. Recarga tu cuenta primero."
+            }), 400
+
+        # PRIORIDAD 1: Buscar PIN local prioritario por valor
+        available_pin = db.get_available_pin_by_value(option_value)
+
+        if available_pin:
+            # Descontar saldo (solo para usuarios normales)
+            if user_id != 'ADMIN001':
+                new_balance = current_balance - real_price
+                balance_updated = db.update_user_balance(user_id, new_balance)
+                if balance_updated is None:
+                    return jsonify({"error": "Error al actualizar el saldo"}), 500
+            else:
+                new_balance = current_balance
+
+            # Usar PIN local prioritario
+            used_pin = db.use_pin(available_pin['id'], user_id)
+            if used_pin:
+                region_name = "Latam" if region == 'latam' else "Global"
+                transaction_id = f"FG{user_id[-3:]}{int(__import__('time').time()) % 10000}"
+                
+                # Insertar transacción específica de Free Fire Global
+                db.insert_freefire_global_transaction(
+                    user_id=user_id,
+                    pin_code=available_pin['pin_code'],
+                    transaction_id=transaction_id,
+                    amount=-real_price,
+                    region=region,
+                    option_value=option_value
+                )
+
+                return jsonify({
+                    "success": True,
+                    "pin": available_pin['pin_code'],
+                    "transaction_id": transaction_id,
+                    "amount": real_price,
+                    "region": region,
+                    "new_balance": f"{new_balance:.2f}",
+                    "source": "local_pin"
+                })
+            else:
+                # Restaurar saldo si falla el uso del PIN
+                if user_id != 'ADMIN001':
+                    db.update_user_balance(user_id, current_balance)
+                return jsonify({"error": "Error al procesar PIN local"}), 500
+
+        else:
+            # Si no hay PINes locales, redirigir según la región
+            if region == 'latam':
+                # Para Latam, usar API de Free Fire Latam existente
+                pin_from_provider = db.get_freefire_latam_pin(option_value)
+                
+                if pin_from_provider:
+                    # Descontar saldo
+                    if user_id != 'ADMIN001':
+                        new_balance = current_balance - real_price
+                        balance_updated = db.update_user_balance(user_id, new_balance)
+                        if balance_updated is None:
+                            return jsonify({"error": "Error al actualizar el saldo"}), 500
+                    else:
+                        new_balance = current_balance
+
+                    transaction_id = f"FG{user_id[-3:]}{int(__import__('time').time()) % 10000}"
+                    
+                    # Insertar transacción
+                    db.insert_freefire_global_transaction(
+                        user_id=user_id,
+                        pin_code=pin_from_provider['pin_code'],
+                        transaction_id=transaction_id,
+                        amount=-real_price,
+                        region=region,
+                        option_value=option_value
+                    )
+
+                    return jsonify({
+                        "success": True,
+                        "pin": pin_from_provider['pin_code'],
+                        "transaction_id": transaction_id,
+                        "amount": real_price,
+                        "region": region,
+                        "new_balance": f"{new_balance:.2f}",
+                        "source": "freefire_latam_api"
+                    })
+                else:
+                    return jsonify({
+                        "error": f"No hay PINés disponibles de ${real_price} para Free Fire Latam. Contacta al administrador."
+                    }), 400
+            else:
+                # Para Global, mostrar error ya que no hay API externa configurada
+                return jsonify({
+                    "error": f"No hay PINés locales disponibles de ${real_price} para Free Fire Global. Contacta al administrador para agregar más PINés."
+                }), 400
+
+    finally:
+        db.disconnect()
 
 @app.route('/blockstriker')
 @login_required
