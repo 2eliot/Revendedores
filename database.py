@@ -570,6 +570,7 @@ class Database:
 
             prices = {
                 "freefire_latam": {},
+                "freefire_global": {},
                 "block_striker": {}
             }
 
@@ -584,9 +585,17 @@ class Database:
 
                     prices[game_type][option_key] = price
 
-            # Si no hay precios en la base de datos, usar valores por defecto
-            if not result or not any(prices.values()):
-                print("📄 No hay precios en base de datos, creando valores por defecto")
+            # Verificar que todos los juegos tengan precios configurados
+            required_games = ['freefire_latam', 'freefire_global', 'block_striker']
+            missing_games = []
+            
+            for game in required_games:
+                if game not in prices or not prices[game]:
+                    missing_games.append(game)
+
+            # Si faltan precios de algún juego, agregar valores por defecto
+            if not result or not any(prices.values()) or missing_games:
+                print(f"📄 Faltan precios para: {missing_games if missing_games else 'todos los juegos'}, creando valores por defecto")
                 default_prices = {
                     "freefire_latam": {
                         "1": 0.66, "2": 1.99, "3": 3.35, "4": 6.70, "5": 12.70,
@@ -601,11 +610,18 @@ class Database:
                     }
                 }
 
-                # Guardar precios por defecto en la base de datos
-                for game_type, game_prices in default_prices.items():
-                    self.save_game_prices(game_type, game_prices)
+                # Guardar solo los precios que faltan
+                for game_type in missing_games:
+                    if game_type in default_prices:
+                        print(f"💾 Guardando precios por defecto para {game_type}")
+                        self.save_game_prices(game_type, default_prices[game_type])
+                        prices[game_type] = default_prices[game_type]
 
-                return default_prices
+                # Si no había ningún precio, guardar todos
+                if not result or not any(prices.values()):
+                    for game_type, game_prices in default_prices.items():
+                        self.save_game_prices(game_type, game_prices)
+                    return default_prices
 
             print(f"📄 Precios cargados desde base de datos: {prices}")
             return prices
