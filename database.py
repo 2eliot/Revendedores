@@ -410,22 +410,6 @@ class Database:
 
         return result
 
-    def insert_freefire_global_transaction(self, user_id, pin_code, transaction_id, amount, region, option_value):
-        """Insertar transacción específica de Free Fire Global con región"""
-        query = """
-        INSERT INTO transactions (user_id, pin, transaction_id, amount, created_at, game_type, option_value, status)
-        VALUES (%s, %s, %s, %s, NOW(), %s, %s, %s)
-        RETURNING *
-        """
-        game_type = f"Free Fire {region.title()}"
-        result = self.execute_query(query, (user_id, pin_code, transaction_id, amount, game_type, option_value, 'completado'))
-
-        # Limpiar transacciones antiguas después de insertar una nueva
-        if result:
-            self.cleanup_old_transactions(user_id)
-
-        return result
-
     def update_block_striker_transaction_status(self, transaction_id, new_status):
         """Actualizar el status de una transacción de Block Striker"""
         # Primero obtener la transacción para saber el monto y usuario
