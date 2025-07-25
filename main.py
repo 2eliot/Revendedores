@@ -459,9 +459,16 @@ def freefire_global_validate_recharge():
         option_value = int(option_value)
         real_price = float(real_price)
 
-        # Validación para Free Fire Global (1-6)
-        if option_value < 1 or option_value > 6:
-            return jsonify({"error": "Opción de Free Fire Global inválida"}), 400
+        # Obtener precio real desde configuración dinámica
+        current_prices = load_game_prices()
+        expected_price = current_prices.get('freefire_global', {}).get(str(option_value))
+
+        if expected_price is None:
+            return jsonify({"error": "Precio no configurado para esta opción"}), 400
+
+        # Verificar que el precio enviado coincida con el configurado
+        if abs(real_price - expected_price) > 0.01:
+            return jsonify({"error": "Precio no coincide con la configuración actual"}), 400
 
         if real_price <= 0:
             return jsonify({"error": "Precio inválido"}), 400
@@ -816,7 +823,8 @@ def load_game_prices():
         return {
             "freefire_latam": {
                 "1": 0.66, "2": 1.99, "3": 3.35, "4": 6.70, "5": 12.70,
-                "6": 29.50, "7": 0.40, "8": 1.40, "9": 6.50
+                "6": 29.50, "7": 0.40, "8": 1.40,```python
+ "9": 6.50
             },
             "block_striker": {
                 "1": 0.82, "2": 2.60, "3": 4.30, "4": 8.65, "5": 17.30,
