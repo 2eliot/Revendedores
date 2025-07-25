@@ -80,13 +80,6 @@
     <h1 class="juego-titulo">Free Fire Global</h1>
 
     <form class="juego-form" onsubmit="handleRecharge(event)">
-      <label for="region-select">Selecciona tu Región</label>
-      <select id="region-select" required>
-        <option value="">-- Selecciona una región --</option>
-        <option value="freefire_latam">Free Fire Latam</option>
-        <option value="freefire_global">Free Fire Global</option>
-      </select>
-
       <label for="amount-select">Selecciona el Paquete</label>
       <select id="amount-select" required>
         <option value="">-- Selecciona un paquete --</option>
@@ -131,22 +124,15 @@
     async function handleRecharge(event) {
       event.preventDefault();
       
-      const regionSelect = document.getElementById('region-select');
       const amountSelect = document.getElementById('amount-select');
       const messageDiv = document.getElementById('message');
       const descripcionDiv = document.querySelector('.juego-descripcion');
-
-      if (!regionSelect.value) {
-        showMessage('Por favor selecciona una región', 'error');
-        return;
-      }
 
       if (!amountSelect.value) {
         showMessage('Por favor selecciona un paquete', 'error');
         return;
       }
 
-      const region = regionSelect.value;
       const optionValue = amountSelect.value;
       const realPrice = priceMapping[optionValue];
       
@@ -157,7 +143,7 @@
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({
-            region: region,
+            region: 'freefire_global', // Región fija para Free Fire Global
             option_value: parseInt(optionValue),
             real_price: realPrice
           })
@@ -190,7 +176,7 @@
               </p>
               <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>🆔 ID Transacción:</strong> ${data.transaction_id}</p>
               <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>💰 Costo:</strong> $${realPrice}</p>
-              <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>🌍 Región:</strong> ${region === 'freefire_latam' ? 'Free Fire Latam' : 'Free Fire Global'}</p>
+              <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>🌍 Región:</strong> Free Fire Global</p>
               <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>👤 Usuario:</strong> {{ session.get('nombre', '') }} {{ session.get('apellido', '') }}</p>
               <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>📅 Fecha y Hora:</strong> ${fechaHora}</p>
               <p style="margin: 0.5rem 0; font-size: 1.1rem;"><strong>🔄 Origen:</strong> PIN prioritario</p>
