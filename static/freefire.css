@@ -1,11 +1,9 @@
-
 body {
   font-family: 'Inter', sans-serif;
-  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  background-color: #f8f9fa;
   margin: 0;
   padding: 0;
   text-align: center;
-  min-height: 100vh;
 }
 
 /* Espaciado para el contenido después del header */
@@ -22,10 +20,10 @@ body > .juego-container {
   max-width: 480px;
   margin: auto;
   background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-  border-radius: 20px;
-  box-shadow: 0 12px 35px rgba(30, 60, 114, 0.3);
-  padding: 2.5rem;
-  border: 2px solid #ff6b1a;
+  border-radius: 15px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+  padding: 2rem;
+  border: 1px solid #e9ecef;
   position: relative;
   overflow: hidden;
 }
@@ -36,28 +34,18 @@ body > .juego-container {
   top: 0;
   left: 0;
   right: 0;
-  height: 6px;
-  background: linear-gradient(90deg, #ff6b1a, #ff8f00, #ffab00);
-  border-radius: 20px 20px 0 0;
-}
-
-.juego-container::after {
-  content: '🔥';
-  position: absolute;
-  top: 15px;
-  right: 20px;
-  font-size: 2rem;
-  opacity: 0.1;
-  pointer-events: none;
+  height: 4px;
+  background: linear-gradient(90deg, #ff6b35, #f7931e);
+  border-radius: 15px 15px 0 0;
 }
 
 .juego-titulo {
-  font-size: 2.2rem;
+  font-size: 2rem;
   margin-bottom: 1.5rem;
-  color: #1e3c72;
+  color: #333;
   font-weight: 700;
   text-align: center;
-  background: linear-gradient(135deg, #1e3c72, #ff6b1a);
+  background: linear-gradient(135deg, #ff6b35, #f7931e);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -72,273 +60,138 @@ body > .juego-container {
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: 80px;
-  height: 4px;
-  background: linear-gradient(90deg, #1e3c72, #ff6b1a);
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(90deg, #ff6b35, #f7931e);
   border-radius: 2px;
 }
 
 .juego-form {
   margin-bottom: 1.5rem;
-  background: rgba(255, 255, 255, 0.9);
-  padding: 2rem;
-  border-radius: 15px;
-  border: 2px solid #e3f2fd;
-  box-shadow: 0 6px 20px rgba(30, 60, 114, 0.1);
-  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.7);
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
 
 .juego-form label {
   display: block;
-  margin-bottom: 0.8rem;
-  font-weight: 600;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
   font-size: 1.1rem;
-  color: #1e3c72;
 }
 
 .juego-form select {
-  padding: 0.8rem;
-  font-size: 1rem;
-  border-radius: 10px;
-  border: 2px solid #e3f2fd;
-  width: 100%;
-  margin-bottom: 1.5rem;
-  background: white;
-  transition: all 0.3s ease;
-  font-weight: 500;
-}
-
-.juego-form select:focus {
-  outline: none;
-  border-color: #ff6b1a;
-  box-shadow: 0 0 0 3px rgba(255, 107, 26, 0.1);
-}
-
-.juego-form select option {
   padding: 0.5rem;
-  font-weight: 500;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  width: 100%;
+  margin-bottom: 1rem;
 }
 
 .juego-form button {
-  padding: 0.8rem 2rem;
-  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  padding: 0.6rem 1.2rem;
+  background-color: #333;
   color: #fff;
   border: none;
-  border-radius: 25px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 1.1rem;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(30, 60, 114, 0.3);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  font-size: 1rem;
 }
 
 .juego-form button:hover {
-  background: linear-gradient(135deg, #ff6b1a, #ff8f00);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 107, 26, 0.4);
-}
-
-.juego-form button:active {
-  transform: translateY(0);
+  background-color: #444;
 }
 
 .juego-descripcion {
   font-size: 0.95rem;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e3f2fd 100%);
-  padding: 2rem;
-  border-radius: 15px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  padding: 1.5rem;
+  border-radius: 12px;
   color: #495057;
-  border: 2px solid #e3f2fd;
-  box-shadow: 0 6px 20px rgba(30, 60, 114, 0.1);
+  border: 1px solid #dee2e6;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
   position: relative;
-}
-
-.juego-descripcion::before {
-  content: '🎮';
-  position: absolute;
-  top: 15px;
-  right: 20px;
-  font-size: 1.5rem;
-  opacity: 0.3;
 }
 
 .juego-descripcion h3 {
-  color: #1e3c72;
-  margin-bottom: 1.2rem;
+  color: #333;
+  margin-bottom: 1rem;
   font-weight: 600;
-  padding-bottom: 0.8rem;
-  border-bottom: 3px solid #ff6b1a;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #ff6b35;
   display: inline-block;
-  font-size: 1.3rem;
 }
 
 .juego-descripcion p {
-  margin-bottom: 1rem;
-  line-height: 1.6;
-  font-weight: 500;
-}
-
-.juego-descripcion ul {
-  text-align: left;
-  margin: 1rem 0;
-  padding-left: 1.5rem;
+  margin-bottom: 0.8rem;
+  line-height: 1.5;
 }
 
 .juego-descripcion li {
-  margin-bottom: 0.8rem;
+  margin-bottom: 0.5rem;
   padding-left: 0.5rem;
-  line-height: 1.5;
-  position: relative;
-}
-
-.juego-descripcion li::before {
-  content: '🔸';
-  position: absolute;
-  left: -1.2rem;
-  top: 0;
-}
-
-.juego-descripcion a {
-  color: #ff6b1a;
-  text-decoration: none;
-  font-weight: 600;
-  transition: color 0.3s ease;
-}
-
-.juego-descripcion a:hover {
-  color: #1e3c72;
-  text-decoration: underline;
-}
-
-.btn {
-  display: inline-block;
-  padding: 0.8rem 1.5rem;
-  text-decoration: none;
-  border-radius: 25px;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.btn-outline-primary {
-  color: #1e3c72;
-  border: 2px solid #1e3c72;
-  background: transparent;
-}
-
-.btn-outline-primary:hover {
-  background: #1e3c72;
-  color: white;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(30, 60, 114, 0.3);
+  line-height: 1.4;
 }
 
 .message {
-  margin-top: 1.5rem;
-  padding: 1rem;
-  border-radius: 10px;
-  font-weight: 600;
-  text-align: center;
+  margin-top: 1rem;
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-weight: bold;
 }
 
 .message.success {
-  background: linear-gradient(135deg, #d4edda, #c3e6cb);
+  background-color: #d4edda;
   color: #155724;
-  border: 2px solid #b8dabd;
 }
 
 .message.error {
-  background: linear-gradient(135deg, #f8d7da, #f1b0b7);
+  background-color: #f8d7da;
   color: #721c24;
-  border: 2px solid #f5c6cb;
 }
 
 .message.info {
-  background: linear-gradient(135deg, #cce7ff, #b3d9ff);
+  background-color: #cce7ff;
   color: #004085;
-  border: 2px solid #b3d9ff;
 }
 
-.text-center {
-  text-align: center;
+.availability-info {
+  border-left: 4px solid #007bff;
 }
 
-/* Efectos de hover especiales para las opciones del select */
-.juego-form select option:hover {
-  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+.availability-info button:hover {
+  background-color: #0056b3 !important;
 }
 
-/* Animación sutil para el contenedor */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.juego-container {
-  animation: fadeInUp 0.6s ease-out;
+/* Estilos para opciones deshabilitadas */
+option:disabled {
+  color: #999 !important;
+  background-color: #f5f5f5;
 }
 
 /* ==== RESPONSIVE DESIGN - MÓVILES ==== */
 @media (max-width: 768px) {
-  body {
-    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-  }
-  
   .juego-container {
     max-width: 95%;
     margin: 1rem auto;
-    padding: 1.5rem;
-    border-radius: 15px;
+    padding: 1.2rem;
+    border-radius: 8px;
   }
-  
-  .juego-titulo {
-    font-size: 1.8rem;
-    margin-bottom: 1rem;
-  }
-  
-  .juego-form {
-    margin-bottom: 1rem;
-    padding: 1.5rem;
-  }
-  
-  .juego-descripcion {
-    font-size: 0.9rem;
-    padding: 1.5rem;
-  }
-  
-  .juego-descripcion h3 {
-    font-size: 1.1rem;
-  }
-  
-  .btn {
-    padding: 0.7rem 1.2rem;
-    font-size: 0.9rem;
-  }
-}
 
-@media (max-width: 480px) {
-  .juego-container {
-    padding: 1.2rem;
-  }
-  
   .juego-titulo {
-    font-size: 1.6rem;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
   }
-  
+
   .juego-form {
-    padding: 1.2rem;
+    margin-bottom: 1rem;
   }
-  
+
   .juego-descripcion {
-    padding: 1.2rem;
+    font-size: 0.85rem;
+    padding: 0.8rem;
   }
 }
