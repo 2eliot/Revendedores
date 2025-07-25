@@ -125,8 +125,8 @@
           <!-- Formulario para agregar PINés -->
           <div class="add-pins-form">
             <h3>➕ Agregar Nuevo PIN</h3>
-            <p>📌 <strong>Free Fire Latam:</strong> Opciones 1-9 (usa API + PINs locales)<br>
-               📌 <strong>Free Fire Global:</strong> Opciones 1-6 (usa SOLO PINs locales)</p>
+            <p>📌 <strong>Free Fire Latam:</strong> Opciones 1-9 (usa API + PINs locales propios)<br>
+               📌 <strong>Free Fire Global:</strong> Opciones 1-6 (usa SOLO PINs locales propios)</p>
             <form onsubmit="addSinglePin(event)">
               <div class="form-row">
                 <div class="form-group">
@@ -134,28 +134,17 @@
                   <input type="text" id="pin-code" placeholder="Ej: ABC123XY" maxlength="20" required autocomplete="off">
                 </div>
                 <div class="form-group">
+                  <label for="game-type">🎮 Tipo de Juego:</label>
+                  <select id="game-type" required onchange="updatePinOptions()">
+                    <option value="">-- Seleccionar juego --</option>
+                    <option value="freefire_latam">🔥 Free Fire Latam</option>
+                    <option value="freefire_global">🌍 Free Fire Global</option>
+                  </select>
+                </div>
+                <div class="form-group">
                   <label for="pin-value">💰 Valor del PIN:</label>
-                  <select id="pin-value" required>
-                    <option value="">-- Seleccionar valor --</option>
-                    <optgroup label="🔥 Free Fire Latam">
-                      <option value="1">💎 110 diamantes - $0.66</option>
-                      <option value="2">💎 341 diamantes - $1.99</option>
-                      <option value="3">💎 572 diamantes - $3.35</option>
-                      <option value="4">💎 1.166 diamantes - $6.70</option>
-                      <option value="5">💎 2.376 diamantes - $12.70</option>
-                      <option value="6">💎 6.138 diamantes - $29.50</option>
-                      <option value="7">🎫 Tarjeta básica - $0.40</option>
-                      <option value="8">🎫 Tarjeta semanal - $1.40</option>
-                      <option value="9">🎫 Tarjeta mensual - $6.50</option>
-                    </optgroup>
-                    <optgroup label="🌍 Free Fire Global">
-                      <option value="1">💎 100+10 diamantes - $0.86</option>
-                      <option value="2">💎 310+31 diamantes - $2.90</option>
-                      <option value="3">💎 520+52 diamantes - $4.00</option>
-                      <option value="4">💎 1.060+106 diamantes - $7.75</option>
-                      <option value="5">💎 2.180+218 diamantes - $15.30</option>
-                      <option value="6">💎 5.600+560 diamantes - $38.00</option>
-                    </optgroup>
+                  <select id="pin-value" required disabled>
+                    <option value="">-- Primero selecciona el juego --</option>
                   </select>
                 </div>
                 <div class="form-group">
@@ -167,12 +156,13 @@
 
           <!-- Estadísticas de PINés -->
           <div class="pins-stats">
-            <h3>Estadísticas de PINés</h3>
+            <h3>Estadísticas de PINés por Juego</h3>
             <div class="stats-grid">
               {% if pins_stats %}
                 {% for stat in pins_stats %}
                 <div class="stat-item">
-                  <div class="stat-value">${{ stat.value }}</div>
+                  <div class="stat-value">Opción {{ stat.value }}</div>
+                  <div class="stat-game">{{ '🔥 FF Latam' if stat.game_type == 'freefire_latam' else '🌍 FF Global' }}</div>
                   <div class="stat-details">
                     <span class="available">{{ stat.available }} disponibles</span>
                     <span class="used">{{ stat.used }} usados</span>
@@ -408,13 +398,53 @@
       location.reload();
     }
 
+    function updatePinOptions() {
+      const gameType = document.getElementById('game-type').value;
+      const pinValueSelect = document.getElementById('pin-value');
+      
+      pinValueSelect.innerHTML = '';
+      
+      if (!gameType) {
+        pinValueSelect.disabled = true;
+        pinValueSelect.innerHTML = '<option value="">-- Primero selecciona el juego --</option>';
+        return;
+      }
+      
+      pinValueSelect.disabled = false;
+      pinValueSelect.innerHTML = '<option value="">-- Seleccionar valor --</option>';
+      
+      if (gameType === 'freefire_latam') {
+        pinValueSelect.innerHTML += `
+          <option value="1">💎 110 diamantes - Opción 1</option>
+          <option value="2">💎 341 diamantes - Opción 2</option>
+          <option value="3">💎 572 diamantes - Opción 3</option>
+          <option value="4">💎 1.166 diamantes - Opción 4</option>
+          <option value="5">💎 2.376 diamantes - Opción 5</option>
+          <option value="6">💎 6.138 diamantes - Opción 6</option>
+          <option value="7">🎫 Tarjeta básica - Opción 7</option>
+          <option value="8">🎫 Tarjeta semanal - Opción 8</option>
+          <option value="9">🎫 Tarjeta mensual - Opción 9</option>
+        `;
+      } else if (gameType === 'freefire_global') {
+        pinValueSelect.innerHTML += `
+          <option value="1">💎 100+10 diamantes - Opción 1</option>
+          <option value="2">💎 310+31 diamantes - Opción 2</option>
+          <option value="3">💎 520+52 diamantes - Opción 3</option>
+          <option value="4">💎 1.060+106 diamantes - Opción 4</option>
+          <option value="5">💎 2.180+218 diamantes - Opción 5</option>
+          <option value="6">💎 5.600+560 diamantes - Opción 6</option>
+        `;
+      }
+    }
+
     async function addSinglePin(event) {
       event.preventDefault();
 
       const pinCode = document.getElementById('pin-code').value.trim().toUpperCase();
+      const gameType = document.getElementById('game-type').value;
       const optionValue = document.getElementById('pin-value').value;
 
-      if (!pinCode || !optionValue) {
+      if (!pinCode || !gameType || !optionValue) {
         alert('Por favor completa todos los campos');
         return;
       }
@@ -424,36 +454,31 @@
         return;
       }
 
-      const realPrice = priceMapping[optionValue];
-      if (!realPrice) {
-        alert('Valor de opción inválido');
-        return;
-      }
-
       try {
         const response = await fetch('/admin/add-single-pin', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({
             pin_code: pinCode,
-            value: parseInt(optionValue) // Enviar el valor de opción (1-9)
+            value: parseInt(optionValue),
+            game_type: gameType
           })
         });
 
         const data = await response.json();
 
         if (data.success) {
-          // Determinar el tipo de juego según la opción
-          const gameType = (optionValue >= 1 && optionValue <= 6) ? 
-            'Free Fire Latam/Global' : 'Free Fire Latam';
+          const gameName = gameType === 'freefire_latam' ? 'Free Fire Latam' : 'Free Fire Global';
           
           alert(`PIN "${pinCode}" agregado exitosamente\n` +
-                `Tipo: ${gameType}\n` +
-                `Opción: ${optionValue} ($${realPrice})\n` +
-                `Disponible para ambos juegos Free Fire`);
+                `Juego: ${gameName}\n` +
+                `Opción: ${optionValue}\n` +
+                `Este PIN solo será usado por ${gameName}`);
           
           document.getElementById('pin-code').value = '';
+          document.getElementById('game-type').value = '';
           document.getElementById('pin-value').value = '';
+          updatePinOptions();
           location.reload();
         } else {
           alert(data.error);

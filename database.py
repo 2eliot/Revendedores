@@ -223,24 +223,44 @@ class Database:
 
         return result is not None and len(result) > 0
 
-    def create_pin(self, pin_code, value):
-        """Crear un nuevo PIN"""
+    def create_pin(self, pin_code, value, game_type='freefire_latam'):
+        """Crear un nuevo PIN con tipo de juego específico"""
+        # Crear tabla con columna game_type si no existe
+        create_table_query = """
+        CREATE TABLE IF NOT EXISTS pins (
+            id SERIAL PRIMARY KEY,
+            pin_code VARCHAR(20) NOT NULL UNIQUE,
+            value INTEGER NOT NULL,
+            is_used BOOLEAN DEFAULT FALSE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            game_type VARCHAR(50) DEFAULT 'freefire_latam'
+        )
+        """
+        self.execute_query(create_table_query)
+        
+        # Agregar columna game_type si no existe (para compatibilidad)
+        add_column_query = """
+        ALTER TABLE pins 
+        ADD COLUMN IF NOT EXISTS game_type VARCHAR(50) DEFAULT 'freefire_latam'
+        """
+        self.execute_query(add_column_query)
+        
         query = """
-        INSERT INTO pins (pin_code, value, created_at)
-        VALUES (%s, %s, NOW())
+        INSERT INTO pins (pin_code, value, game_type, created_at)
+        VALUES (%s, %s, %s, NOW())
         RETURNING *
         """
-        return self.execute_query(query, (pin_code, value))
+        return self.execute_query(query, (pin_code, value, game_type))
 
-    def get_available_pin_by_value(self, value):
-        """Obtener un PIN disponible del valor específico"""
+    def get_available_pin_by_value(self, value, game_type='freefire_latam'):
+        """Obtener un PIN disponible del valor específico y tipo de juego"""
         query = """
         SELECT * FROM pins 
-        WHERE value = %s AND is_used = false 
+        WHERE value = %s AND is_used = false AND game_type = %s
         ORDER BY created_at ASC 
         LIMIT 1
         """
-        result = self.execute_query(query, (value,))
+        result = self.execute_query(query, (value, game_type))
         return result[0] if result else None
 
     def use_pin(self, pin_id, user_id):
@@ -261,17 +281,18 @@ class Database:
         return result
 
     def get_pins_stats(self):
-        """Obtener estadísticas de PINés (solo disponibles ya que los usados se eliminan)"""
+        """Obtener estadísticas de PINés por tipo de juego"""
         query = """
         SELECT 
             value,
+            game_type,
             COUNT(*) as total,
             COUNT(*) as available,
             0 as used
         FROM pins 
         WHERE is_used = false
-        GROUP BY value 
-        ORDER BY value ASC
+        GROUP BY value, game_type
+        ORDER BY game_type, value ASC
         """
         return self.execute_query(query)
 

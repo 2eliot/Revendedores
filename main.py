@@ -265,26 +265,34 @@ def add_single_pin():
     try:
         data = request.get_json()
         pin_code = data.get('pin_code', '').strip().upper()
-        value = float(data.get('value', 0))
+        option_value = int(data.get('value', 0))
+        game_type = data.get('game_type', 'freefire_latam')
 
-        if not pin_code or value <= 0:
+        if not pin_code or option_value <= 0:
             return jsonify({"error": "PIN y valor son requeridos"}), 400
 
         if len(pin_code) < 4:
             return jsonify({"error": "El PIN debe tener al menos 4 caracteres"}), 400
+
+        # Validar tipo de juego y rango de opciones
+        if game_type == 'freefire_latam' and (option_value < 1 or option_value > 9):
+            return jsonify({"error": "Para Free Fire Latam, el valor debe estar entre 1-9"}), 400
+        elif game_type == 'freefire_global' and (option_value < 1 or option_value > 6):
+            return jsonify({"error": "Para Free Fire Global, el valor debe estar entre 1-6"}), 400
 
         # Verificar que el PIN no exista ya
         existing_pin = db.get_pin_by_code(pin_code)
         if existing_pin:
             return jsonify({"error": f"El PIN '{pin_code}' ya existe"}), 400
 
-        # Crear el PIN
-        result = db.create_pin(pin_code, value)
+        # Crear el PIN con tipo de juego específico
+        result = db.create_pin(pin_code, option_value, game_type)
 
         if result:
+            game_name = "Free Fire Latam" if game_type == 'freefire_latam' else "Free Fire Global"
             return jsonify({
                 "success": True, 
-                "message": f"PIN '{pin_code}' de ${value} creado exitosamente"
+                "message": f"PIN '{pin_code}' de opción {option_value} creado exitosamente para {game_name}"
             })
         else:
             return jsonify({"error": "No se pudo crear el PIN"}), 400
@@ -363,7 +371,7 @@ def freefire_latam_validate_recharge():
             }), 400
 
         # PASO 1: Buscar PIN local específico para Free Fire Latam
-        available_pin = db.get_available_pin_by_value(option_value)
+        available_pin = db.get_available_pin_by_value(option_value, 'freefire_latam')
 
         # PASO 2: Si no hay PINs locales, usar proveedor específico de Free Fire Latam
         if not available_pin:
@@ -465,8 +473,8 @@ def freefire_global_validate_recharge():
                 "error": f"Saldo insuficiente. Tu saldo actual es ${current_balance:.2f} y necesitas ${real_price:.2f}. Recarga tu cuenta primero."
             }), 400
 
-        # SOLO buscar PINs locales creados por el admin - NO usar proveedor
-        available_pin = db.get_available_pin_by_value(option_value)
+        # SOLO buscar PINs locales de Free Fire Global - NO usar proveedor
+        available_pin = db.get_available_pin_by_value(option_value, 'freefire_global')
 
         if not available_pin:
             return jsonify({
