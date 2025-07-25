@@ -557,10 +557,10 @@ class Database:
                     game_type = row['game_type']
                     option_key = row['option_key']
                     price = float(row['price'])
-                    
+
                     if game_type not in prices:
                         prices[game_type] = {}
-                    
+
                     prices[game_type][option_key] = price
 
             # Si no hay precios en la base de datos, usar valores por defecto
@@ -576,11 +576,11 @@ class Database:
                         "6": 43.15, "7": 3.50, "8": 8.00, "9": 1.85
                     }
                 }
-                
+
                 # Guardar precios por defecto en la base de datos
                 for game_type, game_prices in default_prices.items():
                     self.save_game_prices(game_type, game_prices)
-                
+
                 return default_prices
 
             print(f"📄 Precios cargados desde base de datos: {prices}")
@@ -599,3 +599,25 @@ class Database:
                     "6": 43.15, "7": 3.50, "8": 8.00, "9": 1.85
                 }
             }
+
+    def get_pin_for_freefire_global(self, option_value):
+        """Obtener un PIN disponible para Free Fire Global"""
+        try:
+            query = """
+                SELECT id, pin_code, value 
+                FROM pins 
+                WHERE game_type = 'freefire_global' 
+                AND value = %s 
+                AND used = FALSE 
+                ORDER BY created_at ASC 
+                LIMIT 1
+            """
+            result = self.execute_query(query, (option_value,))
+
+            if result and len(result) > 0:
+                return result[0]
+            return None
+
+        except Exception as e:
+            print(f"Error obteniendo PIN de Free Fire Global: {e}")
+            return None
