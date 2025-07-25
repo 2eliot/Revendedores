@@ -235,8 +235,49 @@
               </div>
             </div>
             <div class="price-actions">
-              <button onclick="updateFreefirePrices()" class="btn btn-success">💾 Guardar Precios Free Fire</button>
+              <button onclick="updateFreefirePrices()" class="btn btn-success">💾 Guardar Precios Free Fire Latam</button>
               <button onclick="loadCurrentPrices('freefire_latam', true)" class="btn btn-secondary">🔄 Cargar Precios Actuales</button>
+            </div>
+          </div>
+
+          <!-- Free Fire Global -->
+          <div class="game-prices-section">
+            <h3>🌍 Free Fire Global</h3>
+            <div class="prices-grid" id="freefire-global-prices">
+              <div class="price-item">
+                <label>100+10 💎 Diamantes:</label>
+                <span>$</span>
+                <input type="number" step="0.01" min="0" data-option="1" class="price-input-fg" placeholder="0.86">
+              </div>
+              <div class="price-item">
+                <label>310+31 💎 Diamantes:</label>
+                <span>$</span>
+                <input type="number" step="0.01" min="0" data-option="2" class="price-input-fg" placeholder="2.90">
+              </div>
+              <div class="price-item">
+                <label>520+52 💎 Diamantes:</label>
+                <span>$</span>
+                <input type="number" step="0.01" min="0" data-option="3" class="price-input-fg" placeholder="4.00">
+              </div>
+              <div class="price-item">
+                <label>1.060+106 💎 Diamantes:</label>
+                <span>$</span>
+                <input type="number" step="0.01" min="0" data-option="4" class="price-input-fg" placeholder="7.75">
+              </div>
+              <div class="price-item">
+                <label>2.180+218 💎 Diamantes:</label>
+                <span>$</span>
+                <input type="number" step="0.01" min="0" data-option="5" class="price-input-fg" placeholder="15.30">
+              </div>
+              <div class="price-item">
+                <label>5.600+560 💎 Diamantes:</label>
+                <span>$</span>
+                <input type="number" step="0.01" min="0" data-option="6" class="price-input-fg" placeholder="38.00">
+              </div>
+            </div>
+            <div class="price-actions">
+              <button onclick="updateFreefireGlobalPrices()" class="btn btn-success">💾 Guardar Precios Free Fire Global</button>
+              <button onclick="loadCurrentPrices('freefire_global', true)" class="btn btn-secondary">🔄 Cargar Precios Actuales</button>
             </div>
           </div>
 
@@ -707,7 +748,19 @@
 
         if (data.success) {
           const prices = data.prices[gameType] || {};
-          const className = gameType === 'freefire_latam' ? 'price-input-ff' : 'price-input-bs';
+          let className;
+          let gameName;
+          
+          if (gameType === 'freefire_latam') {
+            className = 'price-input-ff';
+            gameName = 'Free Fire Latam';
+          } else if (gameType === 'freefire_global') {
+            className = 'price-input-fg';
+            gameName = 'Free Fire Global';
+          } else if (gameType === 'block_striker') {
+            className = 'price-input-bs';
+            gameName = 'Block Striker';
+          }
 
           document.querySelectorAll(`.${className}`).forEach(input => {
             const option = input.getAttribute('data-option');
@@ -717,7 +770,7 @@
           });
 
           if (showAlert) {
-            alert(`Precios de ${gameType === 'freefire_latam' ? 'Free Fire Latam' : 'Block Striker'} cargados`);
+            alert(`Precios de ${gameName} cargados`);
           }
         } else {
           if (showAlert) {
@@ -784,6 +837,73 @@
               
               if (allMatch) {
                 alert('✅ Precios de Free Fire Latam actualizados y verificados exitosamente');
+              } else {
+                alert('⚠️ Los precios se guardaron pero la verificación falló. Por favor recarga la página.');
+              }
+            } else {
+              alert('⚠️ No se pudo verificar que los precios se guardaron correctamente');
+            }
+          }, 500);
+        } else {
+          alert('Error: ' + data.error);
+        }
+      } catch (error) {
+        alert('Error al actualizar precios: ' + error);
+      }
+    }
+
+    async function updateFreefireGlobalPrices() {
+      const prices = {};
+      let hasError = false;
+
+      document.querySelectorAll('.price-input-fg').forEach(input => {
+        const option = input.getAttribute('data-option');
+        const value = parseFloat(input.value);
+
+        if (isNaN(value) || value < 0) {
+          alert(`Precio inválido para la opción ${option}`);
+          hasError = true;
+          return;
+        }
+
+        prices[option] = value;
+      });
+
+      if (hasError) return;
+
+      try {
+        console.log('Enviando precios Free Fire Global:', prices);
+        
+        const response = await fetch('/admin/update-game-prices', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            game_type: 'freefire_global',
+            prices: prices
+          })
+        });
+
+        const data = await response.json();
+        console.log('Respuesta del servidor:', data);
+
+        if (data.success) {
+          setTimeout(async () => {
+            const verifyResponse = await fetch('/admin/get-game-prices');
+            const verifyData = await verifyResponse.json();
+            
+            if (verifyData.success && verifyData.prices && verifyData.prices.freefire_global) {
+              const savedPrices = verifyData.prices.freefire_global;
+              let allMatch = true;
+              
+              for (const [option, price] of Object.entries(prices)) {
+                if (Math.abs(savedPrices[option] - price) > 0.01) {
+                  allMatch = false;
+                  break;
+                }
+              }
+              
+              if (allMatch) {
+                alert('✅ Precios de Free Fire Global actualizados y verificados exitosamente');
               } else {
                 alert('⚠️ Los precios se guardaron pero la verificación falló. Por favor recarga la página.');
               }
@@ -872,6 +992,7 @@
       // Cargar precios automáticamente cuando se carga la página
       setTimeout(() => {
         loadCurrentPrices('freefire_latam');
+        loadCurrentPrices('freefire_global');
         loadCurrentPrices('block_striker');
       }, 1000);
     });

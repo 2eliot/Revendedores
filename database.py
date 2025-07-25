@@ -237,14 +237,14 @@ class Database:
         )
         """
         self.execute_query(create_table_query)
-        
+
         # Agregar columna game_type si no existe (para compatibilidad)
         add_column_query = """
         ALTER TABLE pins 
         ADD COLUMN IF NOT EXISTS game_type VARCHAR(50) DEFAULT 'freefire_latam'
         """
         self.execute_query(add_column_query)
-        
+
         query = """
         INSERT INTO pins (pin_code, value, game_type, created_at)
         VALUES (%s, %s, %s, NOW())
@@ -578,10 +578,10 @@ class Database:
                     game_type = row['game_type']
                     option_key = row['option_key']
                     price = float(row['price'])
-                    
+
                     if game_type not in prices:
                         prices[game_type] = {}
-                    
+
                     prices[game_type][option_key] = price
 
             # Si no hay precios en la base de datos, usar valores por defecto
@@ -592,16 +592,19 @@ class Database:
                         "1": 0.66, "2": 1.99, "3": 3.35, "4": 6.70, "5": 12.70,
                         "6": 29.50, "7": 0.40, "8": 1.40, "9": 6.50
                     },
+                    "freefire_global": {
+                        "1": 0.86, "2": 2.90, "3": 4.00, "4": 7.75, "5": 15.30, "6": 38.00
+                    },
                     "block_striker": {
                         "1": 0.82, "2": 2.60, "3": 4.30, "4": 8.65, "5": 17.30,
                         "6": 43.15, "7": 3.50, "8": 8.00, "9": 1.85
                     }
                 }
-                
+
                 # Guardar precios por defecto en la base de datos
                 for game_type, game_prices in default_prices.items():
                     self.save_game_prices(game_type, game_prices)
-                
+
                 return default_prices
 
             print(f"📄 Precios cargados desde base de datos: {prices}")
@@ -614,6 +617,9 @@ class Database:
                 "freefire_latam": {
                     "1": 0.66, "2": 1.99, "3": 3.35, "4": 6.70, "5": 12.70,
                     "6": 29.50, "7": 0.40, "8": 1.40, "9": 6.50
+                },
+                "freefire_global": {
+                    "1": 0.86, "2": 2.90, "3": 4.00, "4": 7.75, "5": 15.30, "6": 38.00
                 },
                 "block_striker": {
                     "1": 0.82, "2": 2.60, "3": 4.30, "4": 8.65, "5": 17.30,

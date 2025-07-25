@@ -868,7 +868,7 @@ def update_game_prices():
         if not game_type or not new_prices:
             return jsonify({"error": "Tipo de juego y precios son requeridos"}), 400
 
-        if game_type not in ['freefire_latam', 'block_striker']:
+        if game_type not in ['freefire_latam', 'freefire_global', 'block_striker']:
             return jsonify({"error": "Tipo de juego inválido"}), 400
 
         # Validar que todos los precios sean números positivos
