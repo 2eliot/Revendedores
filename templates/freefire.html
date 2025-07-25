@@ -143,14 +143,24 @@
       const select = document.getElementById('amount-select');
       const options = select.querySelectorAll('option[value]');
       
+      // Definir los textos base para cada opción
+      const baseTexts = {
+        '1': '100+10 diamantes',
+        '2': '310+31 diamantes',
+        '3': '520+52 diamantes',
+        '4': '1.060+106 diamantes',
+        '5': '2.180+218 diamantes',
+        '6': '5.600+560 diamantes'
+      };
+      
       options.forEach(option => {
         const value = option.value;
         const price = priceMapping[value];
+        const baseText = baseTexts[value];
         
-        if (price) {
-          // Actualizar el texto de la opción con el precio actual
-          const originalText = option.textContent.split(' / $')[0]; // Mantener la parte antes del precio
-          option.textContent = `${originalText} / $${price}`;
+        if (price && baseText) {
+          // Usar el texto base y agregar el precio actual
+          option.textContent = `${baseText} / $${price}`;
         }
       });
     }
