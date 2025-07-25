@@ -292,6 +292,28 @@ def add_single_pin():
     finally:
         db.disconnect()
 
+@app.route('/freefire')
+@login_required
+def freefire():
+    """Página principal de Free Fire Global"""
+    db = Database()
+    if not db.connect():
+        return "Error de conexión a la base de datos", 500
+
+    try:
+        user_id = session['user_id']
+        balance = db.get_user_balance(user_id)
+        if balance is None:
+            balance = "0.00"
+        banner_message = get_banner_message()
+
+        return render_template('freefire.html', 
+                             user_id=user_id, 
+                             balance=balance,
+                             banner_message=banner_message)
+    finally:
+        db.disconnect()
+
 @app.route('/freefire-latam/validate-recharge', methods=['POST'])
 @login_required
 def freefire_latam_validate_recharge():
