@@ -464,13 +464,36 @@ class Database:
         """Procesar respuesta con warnings PHP específica de Free Fire Latam"""
         try:
             import json
+            import re
+            
+            # Buscar el JSON después de los warnings PHP
             json_start = response_data.find('{')
             if json_start != -1:
                 json_part = response_data[json_start:]
+                print(f"[FREEFIRE LATAM] 📋 JSON extraído después de warnings: {json_part}")
                 json_response = json.loads(json_part)
+                print(f"[FREEFIRE LATAM] 📋 JSON parseado correctamente: {json_response}")
+                
+                # Procesar usando el método normal
                 return self._process_freefire_latam_response(json_response, amount_value)
-        except:
-            pass
+            
+            # Si no hay JSON válido, intentar extraer PIN del HTML/mensaje
+            pin_match = re.search(r'<b>Pin:<\/b>\s*([A-Z0-9]+)', response_data, re.IGNORECASE)
+            if pin_match:
+                pin_code = pin_match.group(1).strip().upper()
+                print(f"[FREEFIRE LATAM] 📋 PIN extraído del mensaje HTML: {pin_code}")
+                
+                if 4 <= len(pin_code) <= 20:
+                    return {
+                        'pin_code': pin_code,
+                        'value': amount_value,
+                        'source': 'freefire_latam_api'
+                    }
+                    
+        except json.JSONDecodeError as e:
+            print(f"[FREEFIRE LATAM] ❌ Error parseando JSON: {e}")
+        except Exception as e:
+            print(f"[FREEFIRE LATAM] ❌ Error procesando respuesta con warnings: {e}")
 
         print(f"[FREEFIRE LATAM] No se pudo procesar respuesta: {response_data}")
         return None
