@@ -785,6 +785,10 @@ def update_banner_message():
     if not is_admin():
         return jsonify({'success': False, 'error': 'Acceso denegado'}), 403
 
+    db = Database()
+    if not db.connect():
+        return jsonify({'success': False, 'error': 'Error de conexión a la base de datos'}), 500
+
     try:
         data = request.get_json()
         new_message = data.get('message', '').strip()
@@ -795,24 +799,79 @@ def update_banner_message():
         if len(new_message) > 500:
             return jsonify({'success': False, 'error': 'El mensaje es demasiado largo (máximo 500 caracteres)'})
 
-        # Guardar el mensaje en un archivo o variable global
-        # Por simplicidad, usaremos un archivo de texto
-        with open('banner_message.txt', 'w', encoding='utf-8') as f:
-            f.write(new_message)
+        # Crear tabla de configuraciones si no existe
+        create_config_query = """
+        CREATE TABLE IF NOT EXISTS system_config (
+            id SERIAL PRIMARY KEY,
+            config_key VARCHAR(100) UNIQUE NOT NULL,
+            config_value TEXT NOT NULL,
+            description TEXT,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+        db.execute_query(create_config_query)
 
-        return jsonify({'success': True, 'message': 'Mensaje del banner actualizado exitosamente'})
+        # Actualizar o insertar el mensaje del banner en la base de datos
+        upsert_query = """
+        INSERT INTO system_config (config_key, config_value, description) 
+        VALUES ('banner_message', %s, 'Mensaje del banner principal')
+        ON CONFLICT (config_key) 
+        DO UPDATE SET 
+            config_value = EXCLUDED.config_value,
+            updated_at = CURRENT_TIMESTAMP
+        """
+        result = db.execute_query(upsert_query, (new_message,))
+
+        if result is not None:
+            return jsonify({'success': True, 'message': 'Mensaje del banner actualizado exitosamente'})
+        else:
+            return jsonify({'success': False, 'error': 'Error guardando en base de datos'}), 500
 
     except Exception as e:
-        return jsonify({'success': False, 'error': f'Error al actualizar banner: {str(e)}'})
+        return jsonify({'success': False, 'error': f'Error al actualizar banner: {str(e)}'}), 500
+    finally:
+        db.disconnect()
 
 def get_banner_message():
-    """Obtener el mensaje actual del banner"""
+    """Obtener el mensaje actual del banner desde la base de datos"""
+    db = Database()
+    if not db.connect():
+        return "🎮 ¡Bienvenido a InefableStore! Tu tienda de recargas de juegos más confiable 💎"
+    
     try:
-        with open('banner_message.txt', 'r', encoding='utf-8') as f:
-            return f.read().strip()
-    except FileNotFoundError:
-        # Mensaje por defecto si no existe el archivo
-        return "🚨 IMPORTANTE: GameFan temporalmente fuera de servicio - No comprar PINs hasta nuevo aviso 🚨 Recargas de Block Striker requieren aprobación manual 🚨 Soporte disponible 24/7 para consultas 🚨"
+        # Crear tabla de configuraciones si no existe
+        create_config_query = """
+        CREATE TABLE IF NOT EXISTS system_config (
+            id SERIAL PRIMARY KEY,
+            config_key VARCHAR(100) UNIQUE NOT NULL,
+            config_value TEXT NOT NULL,
+            description TEXT,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+        db.execute_query(create_config_query)
+        
+        # Obtener mensaje del banner
+        query = "SELECT config_value FROM system_config WHERE config_key = 'banner_message'"
+        result = db.execute_query(query)
+        
+        if result and len(result) > 0:
+            return result[0]['config_value']
+        else:
+            # Insertar mensaje por defecto si no existe
+            default_message = "🎮 ¡Bienvenido a InefableStore! Tu tienda de recargas de juegos más confiable 💎"
+            insert_query = """
+            INSERT INTO system_config (config_key, config_value, description) 
+            VALUES ('banner_message', %s, 'Mensaje del banner principal')
+            """
+            db.execute_query(insert_query, (default_message,))
+            return default_message
+            
+    except Exception as e:
+        print(f"Error obteniendo banner desde BD: {e}")
+        return "🎮 ¡Bienvenido a InefableStore! Tu tienda de recargas de juegos más confiable 💎"
+    finally:
+        db.disconnect()
 
 def load_game_prices():
     """Cargar precios de los juegos desde la base de datos"""

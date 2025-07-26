@@ -642,3 +642,86 @@ class Database:
                     "6": 43.15, "7": 3.50, "8": 8.00, "9": 1.85
                 }
             }
+
+    def get_system_config(self, config_key, default_value=None):
+        """Obtener una configuración del sistema desde la base de datos"""
+        try:
+            # Crear tabla si no existe
+            create_table_query = """
+            CREATE TABLE IF NOT EXISTS system_config (
+                id SERIAL PRIMARY KEY,
+                config_key VARCHAR(100) UNIQUE NOT NULL,
+                config_value TEXT NOT NULL,
+                description TEXT,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+            self.execute_query(create_table_query)
+
+            # Obtener configuración
+            query = "SELECT config_value FROM system_config WHERE config_key = %s"
+            result = self.execute_query(query, (config_key,))
+
+            if result and len(result) > 0:
+                return result[0]['config_value']
+            elif default_value is not None:
+                # Insertar valor por defecto si no existe
+                self.set_system_config(config_key, default_value)
+                return default_value
+            else:
+                return None
+
+        except Exception as e:
+            print(f"Error obteniendo configuración {config_key}: {e}")
+            return default_value
+
+    def set_system_config(self, config_key, config_value, description=None):
+        """Establecer una configuración del sistema en la base de datos"""
+        try:
+            # Crear tabla si no existe
+            create_table_query = """
+            CREATE TABLE IF NOT EXISTS system_config (
+                id SERIAL PRIMARY KEY,
+                config_key VARCHAR(100) UNIQUE NOT NULL,
+                config_value TEXT NOT NULL,
+                description TEXT,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+            self.execute_query(create_table_query)
+
+            # Insertar o actualizar configuración
+            upsert_query = """
+            INSERT INTO system_config (config_key, config_value, description) 
+            VALUES (%s, %s, %s)
+            ON CONFLICT (config_key) 
+            DO UPDATE SET 
+                config_value = EXCLUDED.config_value,
+                updated_at = CURRENT_TIMESTAMP
+            """
+            result = self.execute_query(upsert_query, (config_key, config_value, description))
+            return result is not None
+
+        except Exception as e:
+            print(f"Error estableciendo configuración {config_key}: {e}")
+            return False
+
+    def initialize_default_configs(self):
+        """Inicializar configuraciones por defecto del sistema"""
+        default_configs = {
+            'banner_message': '🎮 ¡Bienvenido a InefableStore! Tu tienda de recargas de juegos más confiable 💎',
+            'maintenance_mode': 'false',
+            'max_transactions_per_user': '30',
+            'freefire_latam_api_enabled': 'true',
+            'freefire_global_api_enabled': 'false',
+            'block_striker_api_enabled': 'false'
+        }
+
+        for key, value in default_configs.items():
+            # Solo insertar si no existe
+            existing = self.get_system_config(key)
+            if existing is None:
+                self.set_system_config(key, value, f'Configuración por defecto: {key}')
+                print(f"✅ Configuración inicializada: {key} = {value}")
+
+        return True
