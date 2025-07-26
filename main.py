@@ -354,6 +354,10 @@ def freefire():
 @login_required
 def freefire_latam_validate_recharge():
     """ENDPOINT EXCLUSIVO para Free Fire Latam - NO reutilizar"""
+    db = Database()
+    if not db.connect():
+        return jsonify({"error": "Error de conexión a la base de datos"}), 500
+
     try:
         data = request.get_json()
         if not data:
