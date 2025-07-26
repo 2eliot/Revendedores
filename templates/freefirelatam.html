@@ -117,6 +117,7 @@
     </div>
   </div>
 
+  <script src="{{ url_for('static', filename='validation.js') }}"></script>
   <script>
     // Mapeo de precios - se carga dinámicamente desde el servidor
     let priceMapping = {
@@ -176,13 +177,27 @@
       const messageDiv = document.getElementById('message');
       const descripcionDiv = document.querySelector('.juego-descripcion');
 
-      if (!select.value) {
-        showMessage('Por favor selecciona un monto', 'error');
+      // Validaciones frontend usando JavaScript
+      const formData = {
+        option_value: select.value,
+        real_price: priceMapping[select.value]
+      };
+
+      const validation = FrontendValidator.validateRechargeForm(formData, 'freefire_latam');
+      if (!validation.valid) {
+        showMessage(validation.errors.join('; '), 'error');
         return;
       }
 
       const optionValue = select.value; // Valor 1-9
       const realPrice = priceMapping[optionValue]; // Precio real en USD
+      
+      // Validación adicional de precio
+      const priceValidation = FrontendValidator.validatePrice(realPrice);
+      if (!priceValidation.valid) {
+        showMessage(priceValidation.error, 'error');
+        return;
+      }
       
       showMessage('Procesando recarga...', 'info');
 

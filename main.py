@@ -2,6 +2,7 @@
 from flask import Flask, render_template, session, redirect, url_for, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from database import Database
+from utils import MemoryUtils, PriceCalculator, ValidationEngine, log_to_console, generate_unique_id
 import os
 from dotenv import load_dotenv
 from functools import wraps
@@ -17,14 +18,20 @@ app.secret_key = os.getenv('FLASK_SECRET_KEY')
 # Configurar duración de sesión a 3 horas
 app.permanent_session_lifetime = timedelta(hours=3)
 
-# Cache global para configuraciones
+# Cache global para configuraciones con más opciones
 app_cache = {
     'banner_message': None,
     'banner_message_timestamp': 0,
     'game_prices': None,
     'game_prices_timestamp': 0,
-    'cache_duration': 300  # 5 minutos
+    'user_sessions': {},  # Cache de sesiones en memoria
+    'temp_codes': {},     # Códigos temporales
+    'validation_cache': {},  # Cache de validaciones
+    'cache_duration': int(os.getenv('CACHE_DURATION', '900'))  # 15 minutos por defecto
 }
+
+# Configuraciones desde variables de entorno
+ENV_CONFIG = MemoryUtils.get_environment_config()
 
 def login_required(f):
     @wraps(f)
@@ -97,46 +104,57 @@ def login():
 
 @app.route('/register', methods=['POST'])
 def register():
-    db = Database()
-    if not db.connect():
-        return jsonify({"error": "Error de conexión a la base de datos"}), 500
-
     try:
         data = request.get_json()
-        nombre = data.get('nombre')
-        apellido = data.get('apellido')
-        telefono = data.get('telefono')
-        email = data.get('email')
+        
+        # Validaciones frontend usando memoria (sin BD)
+        is_valid, validation_errors = ValidationEngine.validate_registration_data(data)
+        
+        if not is_valid:
+            log_to_console(f"Errores de validación en registro: {validation_errors}", "VALIDATION_ERROR")
+            return jsonify({"error": "; ".join(validation_errors)}), 400
+
+        # Limpiar datos de entrada
+        nombre = MemoryUtils.clean_input(data.get('nombre'))
+        apellido = MemoryUtils.clean_input(data.get('apellido'))
+        telefono = MemoryUtils.clean_input(data.get('telefono'))
+        email = data.get('email').lower().strip()  # Email en minúsculas
         password = data.get('password')
 
-        if not all([nombre, apellido, telefono, email, password]):
-            return jsonify({"error": "Todos los campos son requeridos"}), 400
+        # Validación adicional de email (formato ya validado anteriormente)
+        if not MemoryUtils.validate_email(email):
+            return jsonify({"error": "Formato de email inválido"}), 400
 
-        if len(password) < 6:
-            return jsonify({"error": "La contraseña debe tener al menos 6 caracteres"}), 400
+        db = Database()
+        if not db.connect():
+            log_to_console("Error de conexión a BD en registro", "DB_ERROR")
+            return jsonify({"error": "Error de conexión a la base de datos"}), 500
 
-        # Verificar si el email ya existe
-        existing_user = db.get_user_by_email(email)
-        if existing_user:
-            return jsonify({"error": "El email ya está registrado"}), 400
+        try:
+            # Verificar si el email ya existe (única consulta a BD necesaria)
+            existing_user = db.get_user_by_email(email)
+            if existing_user:
+                return jsonify({"error": "El email ya está registrado"}), 400
 
-        # Crear hash de la contraseña
-        password_hash = generate_password_hash(password)
+            # Crear hash de la contraseña
+            password_hash = generate_password_hash(password)
 
-        # Crear usuario
-        result = db.create_user(nombre, apellido, telefono, email, password_hash)
+            # Crear usuario
+            result = db.create_user(nombre, apellido, telefono, email, password_hash)
 
-        if result:
-            return jsonify({"success": True, "message": "Usuario registrado exitosamente"})
-        else:
-            return jsonify({"error": "No se pudo crear el usuario"}), 500
+            if result:
+                log_to_console(f"Usuario registrado exitosamente: {email}", "SUCCESS")
+                return jsonify({"success": True, "message": "Usuario registrado exitosamente"})
+            else:
+                log_to_console(f"Error creando usuario: {email}", "DB_ERROR")
+                return jsonify({"error": "No se pudo crear el usuario"}), 500
+
+        finally:
+            db.disconnect()
 
     except Exception as e:
-        print(f"Error en registro: {e}")
+        log_to_console(f"Error en registro: {str(e)}", "ERROR")
         return jsonify({"error": "Error interno del servidor"}), 500
-
-    finally:
-        db.disconnect()
 
 @app.route('/dashboard')
 @login_required
@@ -336,28 +354,31 @@ def freefire():
 @login_required
 def freefire_latam_validate_recharge():
     """ENDPOINT EXCLUSIVO para Free Fire Latam - NO reutilizar"""
-    db = Database()
-    if not db.connect():
-        return jsonify({"error": "Error de conexión a la base de datos"}), 500
-
     try:
         data = request.get_json()
         if not data:
             return jsonify({"error": "Datos de solicitud inválidos"}), 400
 
+        # Validaciones frontend usando memoria (sin BD)
+        is_valid, validation_errors = ValidationEngine.validate_recharge_data(data, 'freefire_latam')
+        
+        if not is_valid:
+            log_to_console(f"Errores de validación en recarga FF Latam: {validation_errors}", "VALIDATION_ERROR")
+            return jsonify({"error": "; ".join(validation_errors)}), 400
+
         user_id = session['user_id']
-        option_value = data.get('option_value')  # Valor 1-9 específico de Free Fire Latam
-        real_price = data.get('real_price')      # Precio real en USD
+        option_value = int(data.get('option_value'))
+        real_price = float(data.get('real_price'))
 
-        if option_value is None or real_price is None:
-            return jsonify({"error": "Datos de recarga incompletos"}), 400
+        # Validación específica usando utilidades de memoria
+        game_valid, game_error = MemoryUtils.validate_game_option('freefire_latam', option_value)
+        if not game_valid:
+            return jsonify({"error": game_error}), 400
 
-        option_value = int(option_value)
-        real_price = float(real_price)
-
-        # Validación específica para Free Fire Latam (1-9)
-        if option_value < 1 or option_value > 9:
-            return jsonify({"error": "Opción de Free Fire Latam inválida"}), 400
+        # Validación de precio usando utilidades de memoria
+        price_valid, price_error = MemoryUtils.validate_price_range(real_price)
+        if not price_valid:
+            return jsonify({"error": price_error}), 400
 
         # Obtener precio real desde configuración dinámica
         current_prices = load_game_prices()
@@ -409,7 +430,7 @@ def freefire_latam_validate_recharge():
             # PIN local de Free Fire Latam
             used_pin = db.use_pin(available_pin['id'], user_id)
             if used_pin:
-                transaction_id = f"FF{user_id[-3:]}{int(__import__('time').time()) % 10000}"
+                transaction_id = MemoryUtils.generate_transaction_id(user_id, "FF")
                 db.insert_transaction(user_id, available_pin['pin_code'], transaction_id, -real_price)
 
                 return jsonify({
@@ -426,7 +447,7 @@ def freefire_latam_validate_recharge():
 
         elif pin_from_provider:
             # PIN del proveedor específico de Free Fire Latam
-            transaction_id = f"FF{user_id[-3:]}{int(__import__('time').time()) % 10000}"
+            transaction_id = MemoryUtils.generate_transaction_id(user_id, "FF")
             db.insert_transaction(user_id, pin_from_provider['pin_code'], transaction_id, -real_price)
 
             return jsonify({
@@ -511,7 +532,7 @@ def freefire_global_validate_recharge():
         # Usar PIN local
         used_pin = db.use_pin(available_pin['id'], user_id)
         if used_pin:
-            transaction_id = f"FG{user_id[-3:]}{int(__import__('time').time()) % 10000}"
+            transaction_id = MemoryUtils.generate_transaction_id(user_id, "FG")
             db.insert_transaction(user_id, available_pin['pin_code'], transaction_id, -real_price)
 
             return jsonify({
@@ -618,12 +639,12 @@ def block_striker_validate_recharge():
             balance_updated = True
 
         # Crear transacción específica para Block Striker sin código
-        transaction_id = f"BS{user_id[-3:]}{int(__import__('time').time()) % 10000}"
+        transaction_id = MemoryUtils.generate_transaction_id(user_id, "BS")
 
         # Insertar transacción con información específica de Block Striker (sin código)
         db.insert_block_striker_transaction(
             user_id=user_id,
-            player_id=player_id,
+            player_id=MemoryUtils.clean_input(player_id),  # Limpiar entrada
             code=None,  # No se genera código para Block Striker
             transaction_id=transaction_id,
             amount=-real_price,
