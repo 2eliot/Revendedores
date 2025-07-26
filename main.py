@@ -1135,6 +1135,7 @@ if __name__ == '__main__':
     
     if is_render:
         print("🔧 Configuración para Render - Modo Producción")
+        # En Render, Gunicorn manejará la aplicación, esto es solo para testing local
         app.run(host='0.0.0.0', port=port, debug=False, threaded=True)
     else:
         print("🔧 Configuración para Replit - Modo Desarrollo")

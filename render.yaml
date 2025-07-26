@@ -4,7 +4,7 @@ services:
     name: flask-app
     env: python
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "gunicorn -w 4 -b 0.0.0.0:$PORT main:app"
+    startCommand: "gunicorn --workers=4 --bind=0.0.0.0:$PORT --timeout=120 --preload main:app"
     envVars:
       - key: FLASK_SECRET_KEY
         generateValue: true
