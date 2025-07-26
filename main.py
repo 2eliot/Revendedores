@@ -47,6 +47,11 @@ def index():
         return redirect(url_for('dashboard'))
     return redirect(url_for('auth'))
 
+@app.route('/health')
+def health_check():
+    """Health check endpoint para Render"""
+    return jsonify({"status": "ok", "service": "InefableStore"}), 200
+
 @app.route('/auth')
 def auth():
     if 'user_id' in session:
@@ -1081,12 +1086,26 @@ def update_game_prices():
 def service_worker():
     return send_from_directory('static', 'service-worker.js', mimetype='application/javascript')
 
+# Logging de rutas para debug en Render
+@app.before_request
+def log_request_info():
+    """Log información de cada request para debug en Render"""
+    if not ENV_CONFIG.get('maintenance_mode', False):  # Solo si no está en mantenimiento
+        print(f"[REQUEST] {request.method} {request.path} - User: {session.get('user_id', 'Anonymous')}")
+        if request.method == 'POST' and request.is_json:
+            print(f"[REQUEST DATA] Keys: {list(request.get_json().keys()) if request.get_json() else 'None'}")
+
 # Agregar headers de CORS para todas las respuestas
 @app.after_request
 def after_request(response):
     response.headers.add('Access-Control-Allow-Origin', '*')
     response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE')
+    
+    # Log de respuestas para debug en Render
+    if response.status_code >= 400:
+        print(f"[RESPONSE ERROR] {response.status_code} for {request.method} {request.path}")
+    
     return response
 
 # Las credenciales del admin se leen directamente de las variables de entorno
@@ -1106,4 +1125,17 @@ if not freefire_user or not freefire_password:
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False)
+    
+    # Detectar si estamos en Render o Replit
+    is_render = os.getenv('RENDER') is not None
+    is_replit = os.getenv('REPLIT_DEV_DOMAIN') is not None
+    
+    print(f"🌍 Entorno detectado: {'Render' if is_render else 'Replit' if is_replit else 'Desconocido'}")
+    print(f"🚀 Iniciando servidor en puerto {port}")
+    
+    if is_render:
+        print("🔧 Configuración para Render - Modo Producción")
+        app.run(host='0.0.0.0', port=port, debug=False, threaded=True)
+    else:
+        print("🔧 Configuración para Replit - Modo Desarrollo")
+        app.run(host='0.0.0.0', port=port, debug=False)

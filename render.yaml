@@ -20,6 +20,12 @@ services:
         fromDatabase:
           name: postgres-db
           property: connectionString
+      - key: RENDER
+        value: "true"
+      - key: CACHE_DURATION
+        value: "900"
+      - key: MAINTENANCE_MODE
+        value: "false"
 
 databases:
   - name: postgres-db
