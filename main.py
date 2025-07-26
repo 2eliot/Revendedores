@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from functools import wraps
 from datetime import timedelta
 from flask import send_from_directory
+import time
 
 load_dotenv()
 
@@ -15,6 +16,15 @@ app.secret_key = os.getenv('FLASK_SECRET_KEY')
 
 # Configurar duración de sesión a 3 horas
 app.permanent_session_lifetime = timedelta(hours=3)
+
+# Cache global para configuraciones
+app_cache = {
+    'banner_message': None,
+    'banner_message_timestamp': 0,
+    'game_prices': None,
+    'game_prices_timestamp': 0,
+    'cache_duration': 300  # 5 minutos
+}
 
 def login_required(f):
     @wraps(f)
@@ -823,6 +833,8 @@ def update_banner_message():
         result = db.execute_query(upsert_query, (new_message,))
 
         if result is not None:
+            # Invalidar caché del banner cuando se actualice
+            invalidate_cache('banner')
             return jsonify({'success': True, 'message': 'Mensaje del banner actualizado exitosamente'})
         else:
             return jsonify({'success': False, 'error': 'Error guardando en base de datos'}), 500
@@ -833,10 +845,21 @@ def update_banner_message():
         db.disconnect()
 
 def get_banner_message():
-    """Obtener el mensaje actual del banner desde la base de datos"""
+    """Obtener el mensaje actual del banner con caché optimizado"""
+    current_time = time.time()
+    
+    # Verificar si el caché es válido
+    if (app_cache['banner_message'] is not None and 
+        current_time - app_cache['banner_message_timestamp'] < app_cache['cache_duration']):
+        return app_cache['banner_message']
+    
+    # Si no hay caché válido, consultar base de datos
     db = Database()
     if not db.connect():
-        return "🎮 ¡Bienvenido a InefableStore! Tu tienda de recargas de juegos más confiable 💎"
+        default_message = "🎮 ¡Bienvenido a InefableStore! Tu tienda de recargas de juegos más confiable 💎"
+        app_cache['banner_message'] = default_message
+        app_cache['banner_message_timestamp'] = current_time
+        return default_message
     
     try:
         # Crear tabla de configuraciones si no existe
@@ -856,30 +879,45 @@ def get_banner_message():
         result = db.execute_query(query)
         
         if result and len(result) > 0:
-            return result[0]['config_value']
+            message = result[0]['config_value']
         else:
             # Insertar mensaje por defecto si no existe
-            default_message = "🎮 ¡Bienvenido a InefableStore! Tu tienda de recargas de juegos más confiable 💎"
+            message = "🎮 ¡Bienvenido a InefableStore! Tu tienda de recargas de juegos más confiable 💎"
             insert_query = """
             INSERT INTO system_config (config_key, config_value, description) 
             VALUES ('banner_message', %s, 'Mensaje del banner principal')
             """
-            db.execute_query(insert_query, (default_message,))
-            return default_message
+            db.execute_query(insert_query, (message,))
+        
+        # Actualizar caché
+        app_cache['banner_message'] = message
+        app_cache['banner_message_timestamp'] = current_time
+        return message
             
     except Exception as e:
         print(f"Error obteniendo banner desde BD: {e}")
-        return "🎮 ¡Bienvenido a InefableStore! Tu tienda de recargas de juegos más confiable 💎"
+        default_message = "🎮 ¡Bienvenido a InefableStore! Tu tienda de recargas de juegos más confiable 💎"
+        app_cache['banner_message'] = default_message
+        app_cache['banner_message_timestamp'] = current_time
+        return default_message
     finally:
         db.disconnect()
 
 def load_game_prices():
-    """Cargar precios de los juegos desde la base de datos"""
+    """Cargar precios de los juegos con caché optimizado"""
+    current_time = time.time()
+    
+    # Verificar si el caché es válido
+    if (app_cache['game_prices'] is not None and 
+        current_time - app_cache['game_prices_timestamp'] < app_cache['cache_duration']):
+        return app_cache['game_prices']
+    
+    # Si no hay caché válido, consultar base de datos
     db = Database()
     if not db.connect():
         print("❌ Error conectando a la base de datos para cargar precios")
         # Retornar precios por defecto en caso de error
-        return {
+        default_prices = {
             "freefire_latam": {
                 "1": 0.66, "2": 1.99, "3": 3.35, "4": 6.70, "5": 12.70,
                 "6": 29.50, "7": 0.40, "8": 1.40, "9": 6.50
@@ -892,12 +930,30 @@ def load_game_prices():
                 "6": 43.15, "7": 3.50, "8": 8.00, "9": 1.85
             }
         }
+        app_cache['game_prices'] = default_prices
+        app_cache['game_prices_timestamp'] = current_time
+        return default_prices
 
     try:
         prices = db.load_game_prices()
+        # Actualizar caché
+        app_cache['game_prices'] = prices
+        app_cache['game_prices_timestamp'] = current_time
         return prices
     finally:
         db.disconnect()
+
+def invalidate_cache(cache_type=None):
+    """Invalidar caché específico o todo el caché"""
+    if cache_type == 'banner' or cache_type is None:
+        app_cache['banner_message'] = None
+        app_cache['banner_message_timestamp'] = 0
+    
+    if cache_type == 'prices' or cache_type is None:
+        app_cache['game_prices'] = None
+        app_cache['game_prices_timestamp'] = 0
+    
+    print(f"🔄 Caché invalidado: {cache_type or 'todo'}")
 
 def save_game_prices(game_type, prices):
     """Guardar precios de un juego específico en la base de datos"""
@@ -907,7 +963,11 @@ def save_game_prices(game_type, prices):
         return False
 
     try:
-        return db.save_game_prices(game_type, prices)
+        result = db.save_game_prices(game_type, prices)
+        if result:
+            # Invalidar caché de precios cuando se actualicen
+            invalidate_cache('prices')
+        return result
     finally:
         db.disconnect()
 

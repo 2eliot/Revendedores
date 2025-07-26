@@ -115,7 +115,7 @@ class Database:
     def get_user_balance(self, user_id):
         query = "SELECT balance FROM users WHERE user_id = %s"
         result = self.execute_query(query, (user_id,))
-        return result[0]['balance'] if result else 0
+        return result[0]['balance'] if result and len(result) > 0 else "0.00"
 
     def update_user_balance(self, user_id, new_balance):
         # Obtener el saldo actual antes de actualizar
@@ -475,8 +475,8 @@ class Database:
 
         return result
 
-    def cleanup_old_transactions(self, user_id, max_transactions=30):
-        """Eliminar transacciones antiguas manteniendo solo las últimas 30 por usuario"""
+    def cleanup_old_transactions(self, user_id, max_transactions=20):
+        """Eliminar transacciones antiguas manteniendo solo las últimas 20 por usuario"""
         try:
             # Contar transacciones del usuario
             count_query = "SELECT COUNT(*) FROM transactions WHERE user_id = %s"
