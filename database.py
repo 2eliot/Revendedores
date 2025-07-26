@@ -348,37 +348,61 @@ class Database:
             'numero': '0'
         }
 
-        # Headers específicos para Render y producción
+        # Headers optimizados específicamente para Render
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept': 'application/json, text/html, text/plain, */*',
-            'Accept-Language': 'es-ES,es;q=0.9,en;q=0.8',
-            'Accept-Encoding': 'gzip, deflate, br',
-            'Cache-Control': 'no-cache',
-            'Connection': 'keep-alive',
-            'Upgrade-Insecure-Requests': '1'
+            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': '*/*',
+            'Accept-Language': 'es-ES,es;q=0.9',
+            'Accept-Encoding': 'identity',  # Evitar compresión que puede causar problemas
+            'Cache-Control': 'no-cache, no-store',
+            'Pragma': 'no-cache',
+            'Connection': 'close',  # Forzar nueva conexión cada vez
+            'DNT': '1'
         }
 
-        try:
-            print(f"[FREEFIRE LATAM] 🚀 Consultando API con parámetros: {params}")
-            print(f"[FREEFIRE LATAM] 🌐 URL: {api_url}")
-            
-            # Intentar primero con método GET estándar
-            response = requests.get(api_url, params=params, headers=headers, timeout=30)
-            print(f"[FREEFIRE LATAM] 📡 Código de respuesta HTTP: {response.status_code}")
-            
-            # Si obtenemos error 415, intentar con método POST alternativo
-            if response.status_code == 415:
-                print(f"[FREEFIRE LATAM] ⚠️  Error 415 detectado, intentando método POST alternativo...")
+        # Función de retry específica para Render
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                print(f"[FREEFIRE LATAM] 🚀 Intento {attempt + 1}/{max_retries} - Consultando API")
+                print(f"[FREEFIRE LATAM] 🌐 URL: {api_url}")
+                print(f"[FREEFIRE LATAM] 📊 Parámetros: {params}")
                 
-                # Preparar datos para POST
-                post_headers = headers.copy()
-                post_headers['Content-Type'] = 'application/x-www-form-urlencoded'
+                # Intentar con GET usando headers optimizados para Render
+                response = requests.get(api_url, params=params, headers=headers, timeout=20, allow_redirects=True)
+                print(f"[FREEFIRE LATAM] 📡 Respuesta HTTP: {response.status_code}")
                 
-                response = requests.post(api_url, data=params, headers=post_headers, timeout=30)
-                print(f"[FREEFIRE LATAM] 📡 Código de respuesta HTTP (POST): {response.status_code}")
-            
-            response.raise_for_status()
+                # Si es 415, intentar con método POST
+                if response.status_code == 415:
+                    print(f"[FREEFIRE LATAM] ⚠️  Error 415 en intento {attempt + 1}, probando POST...")
+                    
+                    post_headers = headers.copy()
+                    post_headers['Content-Type'] = 'application/x-www-form-urlencoded'
+                    
+                    response = requests.post(api_url, data=params, headers=post_headers, timeout=20)
+                    print(f"[FREEFIRE LATAM] 📡 Respuesta HTTP (POST): {response.status_code}")
+                
+                # Si obtenemos una respuesta exitosa, salir del loop
+                if response.status_code == 200:
+                    print(f"[FREEFIRE LATAM] ✅ Respuesta exitosa en intento {attempt + 1}")
+                    break
+                elif response.status_code == 415 and attempt < max_retries - 1:
+                    print(f"[FREEFIRE LATAM] 🔄 Error 415 persistente, reintentando en 2 segundos...")
+                    import time
+                    time.sleep(2)
+                    continue
+                
+                response.raise_for_status()
+                break
+                
+            except requests.exceptions.RequestException as e:
+                print(f"[FREEFIRE LATAM] ❌ Error en intento {attempt + 1}: {e}")
+                if attempt == max_retries - 1:
+                    raise
+                else:
+                    print(f"[FREEFIRE LATAM] 🔄 Reintentando en 2 segundos...")
+                    import time
+                    time.sleep(2)
             response_data = response.text.strip()
             print(f"[FREEFIRE LATAM] 📄 Respuesta completa: {response_data}")
 
