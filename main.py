@@ -407,12 +407,29 @@ def freefire_latam_validate_recharge():
         # PASO 2: Si no hay PINs locales, usar proveedor específico de Free Fire Latam
         if not available_pin:
             print(f"[FREEFIRE LATAM] No hay PINs locales de opción {option_value} (${real_price})")
-            pin_from_provider = db.get_freefire_latam_pin(option_value)
-
-            if not pin_from_provider:
+            print(f"[FREEFIRE LATAM] Consultando API externa para opción {option_value}")
+            
+            # Crear nueva conexión para la API call
+            api_db = Database()
+            if not api_db.connect():
+                print("[FREEFIRE LATAM] ❌ Error: No se pudo conectar a la base de datos para API")
                 return jsonify({
-                    "error": f"No hay PINés de Free Fire Latam disponibles de ${real_price}. Contacta al administrador."
-                }), 400
+                    "error": "Error de conexión para procesar la recarga"
+                }), 500
+            
+            try:
+                pin_from_provider = api_db.get_freefire_latam_pin(option_value)
+                
+                if not pin_from_provider:
+                    print(f"[FREEFIRE LATAM] ❌ API no devolvió PIN para opción {option_value}")
+                    return jsonify({
+                        "error": f"No hay PINés de Free Fire Latam disponibles de ${real_price}. La API externa no tiene stock disponible."
+                    }), 400
+                else:
+                    print(f"[FREEFIRE LATAM] ✅ PIN obtenido de API: {pin_from_provider.get('pin_code', 'N/A')}")
+                    
+            finally:
+                api_db.disconnect()
 
         # Descontar saldo (solo para usuarios normales, no para admin)
         if user_id != 'ADMIN001':
@@ -1071,6 +1088,16 @@ def after_request(response):
 admin_user = os.getenv('ADMIN_USER')
 admin_password = os.getenv('ADMIN_PASSWORD')
 print(f"Admin configurado - Usuario: {admin_user if admin_user else 'NO CONFIGURADO'}")
+
+# Verificar credenciales de Free Fire Latam
+freefire_user = os.getenv('FREEFIRE_LATAM_USER')
+freefire_password = os.getenv('FREEFIRE_LATAM_PASSWORD')
+print(f"🎮 Free Fire Latam API - Usuario: {'✅ Configurado' if freefire_user else '❌ NO CONFIGURADO'}")
+print(f"🎮 Free Fire Latam API - Contraseña: {'✅ Configurada' if freefire_password else '❌ NO CONFIGURADA'}")
+
+if not freefire_user or not freefire_password:
+    print("⚠️  ADVERTENCIA: Credenciales de Free Fire Latam no configuradas. La API externa no funcionará.")
+    print("   Configura FREEFIRE_LATAM_USER y FREEFIRE_LATAM_PASSWORD en las variables de entorno.")
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

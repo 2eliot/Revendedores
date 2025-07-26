@@ -324,13 +324,18 @@ class Database:
         provider_password = os.getenv('FREEFIRE_LATAM_PASSWORD')
         api_url = "https://inefableshop.net/conexion_api/api.php"
 
+        print(f"[FREEFIRE LATAM] Verificando credenciales...")
+        print(f"[FREEFIRE LATAM] Usuario configurado: {'Sí' if provider_user else 'NO'}")
+        print(f"[FREEFIRE LATAM] Contraseña configurada: {'Sí' if provider_password else 'NO'}")
+
         if not provider_user or not provider_password:
-            print("[FREEFIRE LATAM] Error: Credenciales no configuradas")
+            print("[FREEFIRE LATAM] ❌ Error: Credenciales no configuradas en variables de entorno")
+            print("[FREEFIRE LATAM] Verifica FREEFIRE_LATAM_USER y FREEFIRE_LATAM_PASSWORD")
             return None
 
         # Validar valores específicos de Free Fire Latam (1-9)
         if amount_value < 1 or amount_value > 9:
-            print(f"[FREEFIRE LATAM] Valor {amount_value} inválido. Debe estar entre 1-9")
+            print(f"[FREEFIRE LATAM] ❌ Valor {amount_value} inválido. Debe estar entre 1-9")
             return None
 
         # Parámetros específicos para Free Fire Latam
@@ -344,22 +349,41 @@ class Database:
         }
 
         try:
-            print(f"[FREEFIRE LATAM] Consultando API con parámetros: {params}")
+            print(f"[FREEFIRE LATAM] 🚀 Consultando API con parámetros: {params}")
+            print(f"[FREEFIRE LATAM] 🌐 URL: {api_url}")
+            
             response = requests.get(api_url, params=params, timeout=30)
+            print(f"[FREEFIRE LATAM] 📡 Código de respuesta HTTP: {response.status_code}")
+            
             response.raise_for_status()
             response_data = response.text.strip()
-            print(f"[FREEFIRE LATAM] Respuesta: {response_data}")
+            print(f"[FREEFIRE LATAM] 📄 Respuesta completa: {response_data}")
+
+            if not response_data:
+                print("[FREEFIRE LATAM] ❌ Respuesta vacía de la API")
+                return None
 
             # Procesamiento específico para Free Fire Latam
             try:
                 import json
                 json_response = json.loads(response_data)
+                print(f"[FREEFIRE LATAM] 📋 JSON parseado exitosamente: {json_response}")
                 return self._process_freefire_latam_response(json_response, amount_value)
-            except json.JSONDecodeError:
+            except json.JSONDecodeError as json_error:
+                print(f"[FREEFIRE LATAM] ⚠️  Error JSON, intentando procesar con warnings: {json_error}")
                 return self._process_freefire_latam_warnings_response(response_data, amount_value)
 
+        except requests.exceptions.Timeout:
+            print("[FREEFIRE LATAM] ❌ Timeout: La API tardó más de 30 segundos en responder")
+            return None
+        except requests.exceptions.ConnectionError:
+            print("[FREEFIRE LATAM] ❌ Error de conexión: No se puede conectar con la API")
+            return None
+        except requests.exceptions.HTTPError as http_error:
+            print(f"[FREEFIRE LATAM] ❌ Error HTTP: {http_error}")
+            return None
         except Exception as e:
-            print(f"[FREEFIRE LATAM] Error: {e}")
+            print(f"[FREEFIRE LATAM] ❌ Error inesperado: {type(e).__name__}: {e}")
             return None
 
     def _process_freefire_latam_response(self, json_response, amount_value):
