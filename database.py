@@ -403,22 +403,24 @@ class Database:
                     print(f"[FREEFIRE LATAM] 🔄 Reintentando en 2 segundos...")
                     import time
                     time.sleep(2)
-            response_data = response.text.strip()
-            print(f"[FREEFIRE LATAM] 📄 Respuesta completa: {response_data}")
+        
+        # Procesar respuesta después del loop de retry exitoso
+        response_data = response.text.strip()
+        print(f"[FREEFIRE LATAM] 📄 Respuesta completa: {response_data}")
 
-            if not response_data:
-                print("[FREEFIRE LATAM] ❌ Respuesta vacía de la API")
-                return None
+        if not response_data:
+            print("[FREEFIRE LATAM] ❌ Respuesta vacía de la API")
+            return None
 
-            # Procesamiento específico para Free Fire Latam
-            try:
-                import json
-                json_response = json.loads(response_data)
-                print(f"[FREEFIRE LATAM] 📋 JSON parseado exitosamente: {json_response}")
-                return self._process_freefire_latam_response(json_response, amount_value)
-            except json.JSONDecodeError as json_error:
-                print(f"[FREEFIRE LATAM] ⚠️  Error JSON, intentando procesar con warnings: {json_error}")
-                return self._process_freefire_latam_warnings_response(response_data, amount_value)
+        # Procesamiento específico para Free Fire Latam
+        try:
+            import json
+            json_response = json.loads(response_data)
+            print(f"[FREEFIRE LATAM] 📋 JSON parseado exitosamente: {json_response}")
+            return self._process_freefire_latam_response(json_response, amount_value)
+        except json.JSONDecodeError as json_error:
+            print(f"[FREEFIRE LATAM] ⚠️  Error JSON, intentando procesar con warnings: {json_error}")
+            return self._process_freefire_latam_warnings_response(response_data, amount_value)
 
         except requests.exceptions.Timeout:
             print("[FREEFIRE LATAM] ❌ Timeout: La API tardó más de 30 segundos en responder")
