@@ -409,6 +409,7 @@ def freefire_latam_validate_recharge():
         available_pin = db.get_available_pin_by_value(option_value, 'freefire_latam')
 
         # PASO 2: Si no hay PINs locales, usar proveedor específico de Free Fire Latam
+        pin_from_provider = None
         if not available_pin:
             print(f"[FREEFIRE LATAM] No hay PINs locales de opción {option_value} (${real_price})")
             print(f"[FREEFIRE LATAM] Consultando API externa para opción {option_value}")
