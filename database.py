@@ -348,12 +348,35 @@ class Database:
             'numero': '0'
         }
 
+        # Headers específicos para Render y producción
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'application/json, text/html, text/plain, */*',
+            'Accept-Language': 'es-ES,es;q=0.9,en;q=0.8',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1'
+        }
+
         try:
             print(f"[FREEFIRE LATAM] 🚀 Consultando API con parámetros: {params}")
             print(f"[FREEFIRE LATAM] 🌐 URL: {api_url}")
             
-            response = requests.get(api_url, params=params, timeout=30)
+            # Intentar primero con método GET estándar
+            response = requests.get(api_url, params=params, headers=headers, timeout=30)
             print(f"[FREEFIRE LATAM] 📡 Código de respuesta HTTP: {response.status_code}")
+            
+            # Si obtenemos error 415, intentar con método POST alternativo
+            if response.status_code == 415:
+                print(f"[FREEFIRE LATAM] ⚠️  Error 415 detectado, intentando método POST alternativo...")
+                
+                # Preparar datos para POST
+                post_headers = headers.copy()
+                post_headers['Content-Type'] = 'application/x-www-form-urlencoded'
+                
+                response = requests.post(api_url, data=params, headers=post_headers, timeout=30)
+                print(f"[FREEFIRE LATAM] 📡 Código de respuesta HTTP (POST): {response.status_code}")
             
             response.raise_for_status()
             response_data = response.text.strip()
