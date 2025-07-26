@@ -348,69 +348,40 @@ class Database:
             'numero': '0'
         }
 
-        # Headers simplificados y optimizados para Render
+        # Headers estándar que funcionan en todos los entornos
         headers = {
-            'User-Agent': 'curl/7.68.0',  # User-Agent más simple que suele funcionar mejor
-            'Accept': 'text/html,application/json,*/*',
-            'Accept-Encoding': 'identity',
-            'Connection': 'keep-alive',
+            'User-Agent': 'Mozilla/5.0 (compatible; InefableStore/1.0)',
+            'Accept': '*/*',
             'Cache-Control': 'no-cache'
         }
 
-        # Función de retry optimizada para Render con enfoque directo en POST
-        max_retries = 2
+        # Implementación unificada - siempre usar GET (más compatible)
+        max_retries = 3
         for attempt in range(max_retries):
             try:
                 print(f"[FREEFIRE LATAM] 🚀 Intento {attempt + 1}/{max_retries} - Consultando API")
                 print(f"[FREEFIRE LATAM] 🌐 URL: {api_url}")
                 print(f"[FREEFIRE LATAM] 📊 Parámetros: {params}")
                 
-                # Usar POST directamente con form-data (más estable en Render)
-                post_headers = headers.copy()
-                post_headers['Content-Type'] = 'application/x-www-form-urlencoded'
-                
-                # Construir datos como string URL-encoded manualmente
-                import urllib.parse
-                data_string = urllib.parse.urlencode(params)
-                print(f"[FREEFIRE LATAM] 📝 Datos POST: {data_string}")
-                
-                response = requests.post(
+                # Usar GET siempre - más confiable en todos los entornos
+                response = requests.get(
                     api_url, 
-                    data=data_string, 
-                    headers=post_headers, 
-                    timeout=25,
-                    allow_redirects=False,  # Evitar redirects que pueden causar 415
+                    params=params, 
+                    headers=headers, 
+                    timeout=30,
+                    allow_redirects=True,
                     verify=True
                 )
-                print(f"[FREEFIRE LATAM] 📡 Respuesta HTTP (POST): {response.status_code}")
-                
-                # Si sigue dando 415, intentar con GET como fallback
-                if response.status_code == 415 and attempt == 0:
-                    print(f"[FREEFIRE LATAM] ⚠️  POST falló con 415, probando GET...")
-                    
-                    get_headers = headers.copy()
-                    # Remover Content-Type para GET
-                    if 'Content-Type' in get_headers:
-                        del get_headers['Content-Type']
-                    
-                    response = requests.get(
-                        api_url, 
-                        params=params, 
-                        headers=get_headers, 
-                        timeout=25,
-                        allow_redirects=True,
-                        verify=True
-                    )
-                    print(f"[FREEFIRE LATAM] 📡 Respuesta HTTP (GET fallback): {response.status_code}")
+                print(f"[FREEFIRE LATAM] 📡 Respuesta HTTP: {response.status_code}")
                 
                 # Si obtenemos una respuesta exitosa, salir del loop
                 if response.status_code == 200:
                     print(f"[FREEFIRE LATAM] ✅ Respuesta exitosa en intento {attempt + 1}")
                     break
-                elif response.status_code == 415 and attempt < max_retries - 1:
-                    print(f"[FREEFIRE LATAM] 🔄 Error 415 persistente, reintentando con pausa...")
+                elif attempt < max_retries - 1:
+                    print(f"[FREEFIRE LATAM] 🔄 Reintentando en 2 segundos...")
                     import time
-                    time.sleep(3)
+                    time.sleep(2)
                     continue
                 
                 response.raise_for_status()
@@ -419,12 +390,12 @@ class Database:
             except requests.exceptions.RequestException as e:
                 print(f"[FREEFIRE LATAM] ❌ Error en intento {attempt + 1}: {e}")
                 if attempt == max_retries - 1:
-                    print(f"[FREEFIRE LATAM] ❌ Todos los intentos fallaron. La API externa puede estar experimentando problemas.")
+                    print(f"[FREEFIRE LATAM] ❌ Todos los intentos fallaron.")
                     return None
                 else:
-                    print(f"[FREEFIRE LATAM] 🔄 Reintentando en 3 segundos...")
+                    print(f"[FREEFIRE LATAM] 🔄 Reintentando en 2 segundos...")
                     import time
-                    time.sleep(3)
+                    time.sleep(2)
         
         # Procesar respuesta después del loop de retry exitoso
         response_data = response.text.strip()
